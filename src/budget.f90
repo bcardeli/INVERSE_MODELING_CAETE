@@ -40,7 +40,7 @@ contains
       use productivity
       use omp_lib
 
-      use photo, only: pft_area_frac, sto_resp
+      use photo
       use water, only: evpot2, penman, available_energy, runoff
 
       !     ----------------------------INPUTS-------------------------------
@@ -163,10 +163,12 @@ contains
       integer(i_4), dimension(:, :),allocatable :: uptk_strat        ! D0=2
       INTEGER(i_4), dimension(:), allocatable :: lp ! index of living PLSs/living grasses
 
-      real(r_8), dimension(npls) :: awood_aux, nleaf, nwood, nroot, uptk_costs, pdia_aux, dwood_aux
+      real(r_8), dimension(npls) :: awood_aux, nleaf, nwood, nroot, uptk_costs, pdia_aux, dwood_aux, sla_aux
       real(r_8), dimension(3,npls) :: sto_budg
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
+      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, dens_aux
+      real(r_8) :: max_height
       
       
       
@@ -180,6 +182,7 @@ contains
          awood_aux(i) = dt(7,i)
          pdia_aux(i) = dt(17,i)
          dwood_aux(i) = dt(18,i)
+         sla_aux(i) = dt(19,i)
          cl1_pft(i) = cl1_in(i)
          ca1_pft(i) = ca1_in(i)
          cf1_pft(i) = cf1_in(i)
@@ -200,6 +203,11 @@ contains
 
       call pft_area_frac(cl1_pft, cf1_pft, ca1_pft, awood_aux,&
       &                  ocpavg, ocp_wood, run, ocp_mm)
+
+      call pls_allometry(dt, ca1_pft,awood_aux, height_aux, diameter_aux,&
+      &                   crown_aux)
+
+      max_height = maxval(height_aux(:))
 
       nlen = sum(run)    ! New length for the arrays in the main loop
       allocate(lp(nlen))
@@ -298,12 +306,17 @@ contains
          ri = lp(p)
          dt1 = dt(:,ri) ! Pick up the pls functional attributes list
 
-         call prod(dt1, ocp_wood(ri),catm, temp, soil_temp, p0, w, ipar, rh, emax&
+         ! height_int(p) = height_aux(ri)
+         ! dens_aux(p) = dens_in(p)
+
+         call prod(dt1, ocp_wood(ri),catm, temp, soil_temp, p0, w, ipar, sla_aux(p),rh, emax&
                &, cl1_pft(ri), ca1_pft(ri), cf1_pft(ri), nleaf(ri), nwood(ri), nroot(ri)&
                &, soil_sat, ph(p), ar(p), nppa(p), laia(p), f5(p), vpd(p), rm(p), rg(p), rc2(p)&
-               &, wue(p), c_def(p), vcmax(p), specific_la(p), tra(p))
+               &, wue(p), c_def(p), vcmax(p), tra(p))
 
          evap(p) = penman(p0,temp,rh,available_energy(temp),rc2(p)) !Actual evapotranspiration (evap, mm/day)
+
+         ! print*, 'SLA_VAR', sla_aux(p), laia(p), p
 
          ! Check if the carbon deficit can be compensated by stored carbon
          carbon_in_storage = sto_budg(1, ri)

@@ -53,7 +53,9 @@ module photo
         pft_area_frac          ,& ! (s), area fraction by biomass
         water_ue               ,&
         leap                   ,&
-        ttype
+        ttype                  ,&
+        pls_allometry          ,& ! (s) Plant life strategies allometry (height, diameter, crown area) functions
+        density_ind               !logic to density number (randon - to the inicialization)
 
 contains
 
@@ -106,22 +108,22 @@ contains
    !=================================================================
    !=================================================================
 
-   function gross_ph(f1,cleaf,sla) result(ph)
+   function gross_ph(f1,cleaf,sla_var) result(ph)
       ! Returns gross photosynthesis rate (kgC m-2 y-1) (GPP)
       use types, only: r_4, r_8
       !implicit none
 
       real(r_8),intent(in) :: f1    !molCO2 m-2 s-1
       real(r_8),intent(in) :: cleaf !kgC m-2
-      real(r_8),intent(in) :: sla   !m2 gC-1
+      real(r_8),intent(in) :: sla_var   !m2 gC-1
       real(r_4) :: ph
 
       real(r_8) :: f4sun, f1in
       real(r_8) :: f4shade
 
       f1in = f1
-      f4sun = f_four(1,cleaf,sla)
-      f4shade = f_four(2,cleaf,sla)
+      f4sun = f_four(1,cleaf,sla_var)
+      f4shade = f_four(2,cleaf,sla_var)
 
       ph = real((0.012D0*31557600.0D0*f1in*f4sun*f4shade), r_4)
       if(ph .lt. 0.0) ph = 0.0
@@ -130,18 +132,18 @@ contains
    !=================================================================
    !=================================================================
 
-   function leaf_area_index(cleaf, sla) result(lai)
+   function leaf_area_index(cleaf, sla_var) result(lai)
       ! Returns Leaf Area Index m2 m-2
 
       use types, only: r_8
       !implicit none
 
       real(r_8),intent(in) :: cleaf !kgC m-2
-      real(r_8),intent(in) :: sla   !m2 gC-1
+      real(r_8),intent(in) :: sla_var   !m2 gC-1
       real(r_8) :: lai
 
 
-      lai  = cleaf * 1.0D3 * sla  ! Converts cleaf from (KgC m-2) to (gCm-2)
+      lai  = cleaf * 1.0D3 * sla_var  ! Converts cleaf from (KgC m-2) to (gCm-2)
       if(lai .lt. 0.0D0) lai = 0.0D0
 
    end function leaf_area_index
@@ -190,7 +192,7 @@ contains
    !=================================================================
    !=================================================================
 
-   function f_four(fs,cleaf,sla) result(lai_ss)
+   function f_four(fs,cleaf,sla_var) result(lai_ss)
       ! Function used to scale LAI from leaf to canopy level (2 layers)
       use types, only: i_4, r_4, r_8
       use photo_par, only: p26, p27
@@ -204,14 +206,14 @@ contains
       ! Any other number returns sunlai (not scaled to canopy)
 
       real(r_8),intent(in) :: cleaf ! carbon in leaf (kg m-2)
-      real(r_8),intent(in) :: sla   ! specific leaf area (m2 gC-1)
+      real(r_8),intent(in) :: sla_var   ! specific leaf area (m2 gC-1)
       real(r_8) :: lai_ss           ! leaf area index (m2 m-2)
 
       real(r_8) :: lai
       real(r_8) :: sunlai
       real(r_8) :: shadelai
 
-      lai = leaf_area_index(cleaf, sla)
+      lai = leaf_area_index(cleaf, sla_var)
 
       sunlai = (1.0D0-(dexp(-p26*lai)))/p26
       shadelai = lai - sunlai
@@ -500,11 +502,11 @@ contains
 
    !=================================================================
    !=================================================================
-   function vcmax_a(npa, ppa, sla) result(vcmaxd)
+   function vcmax_a(npa, ppa, sla_var) result(vcmaxd)
       ! TESTING eq.1 / Fig 5 Domingues et al. 2010
       real(r_8), intent(in) :: npa       ! N mg g-1
       real(r_8), intent(in) :: ppa       ! P mg g-1
-      real(r_8), intent(in) :: sla       ! m2(Leaf) g(C)-1
+      real(r_8), intent(in) :: sla_var       ! m2(Leaf) g(C)-1
 
       
       real(r_8) :: vcmaxd !mol m⁻² s⁻¹
@@ -519,7 +521,7 @@ contains
       ndw = npa
       pdw = ppa
 
-      lma = sla ** (-1) ! g/m2
+      lma = sla_var ** (-1) ! g/m2
 
       ! CALCULATE VCMAX
       nlim = alpha_n + nu_n * dlog10(ndw)  ! + (sigma_n * dlog10(sla))
@@ -532,10 +534,10 @@ contains
 
    !=================================================================
    !=================================================================
-   function vcmax_a1(npa, ppa, sla) result(vcmaxd)
+   function vcmax_a1(npa, ppa, sla_var) result(vcmaxd)
       ! TESTING
       real(r_8), intent(in) :: npa   ! N g m-2
-      real(r_8), intent(in) :: ppa,sla   ! P g m-2 / m2 g-1
+      real(r_8), intent(in) :: ppa,sla_var   ! P g m-2 / m2 g-1
 
       
       real(r_8) :: vcmaxd !mol m⁻² s⁻¹
@@ -555,11 +557,11 @@ contains
       ndw = npa
       pdw = ppa
 
-      lma = sla ** (-1) ! g/m2
+      lma = sla_var ** (-1) ! g/m2
 
       ! CALCULATE VCMAX
-      nlim = alpha_n + nu_n * dlog10(ndw)  + (sigma_n * dlog10(sla))
-      plim = alpha_p + nu_p * dlog10(pdw)  + (sigma_p * dlog10(sla))
+      nlim = alpha_n + nu_n * dlog10(ndw)  + (sigma_n * dlog10(sla_var))
+      plim = alpha_p + nu_p * dlog10(pdw)  + (sigma_p * dlog10(sla_var))
       
       vcmax_dw = min(10**nlim, 10**plim) ! log10(vcmax_dw) in µmol g⁻¹ s⁻¹
       vcmaxd = vcmax_dw * lma
@@ -1292,7 +1294,77 @@ contains
    !====================================================================
    !====================================================================
 
-   
+   subroutine pls_allometry (dt,cawood1,awood,height,diameter,&
+      &crown_area)
+      !Based in LPJ model (Smith et al., 2001; Sitch et al., 2003)
+
+      use types 
+      use global_par
+      use allometry_par
+
+      integer(i_4),parameter :: npft = npls 
+      integer(i_4) :: p
+      real(r_8),dimension(ntraits, npls),intent(in) :: dt
+      real(r_8),dimension(npft),intent(in) :: cawood1, awood
+      real(r_8),dimension(npft),intent(out) :: height, diameter, crown_area
+      real(r_8),dimension(npft) :: cawood, dwood
+
+      
+      ! ============================
+      dwood = dt(18,:)
+      cawood = cawood1
+      ! ============================
+    
+      do p = 1, npft !INICIALIZE OUTPUTS VARIABLES
+         height(p) = 0.0D0
+         diameter(p) = 0.0D0
+         crown_area(p) = 0.0D0
+      enddo
+
+      !PLS DIAMETER (in m.)
+      do p = 1, npft !to grasses
+         if(awood(p) .le. 0.0D0) then
+            height(p) = 0.0D0 !in m.
+            diameter(p) = 0.0D0 !in m.
+            crown_area(p) = 0.0D0 !in m2.
+            dwood(p) = 0.0D0
+         else
+            diameter(p) = (4*(cawood(p)*1.0D3)/(dwood(p)*1D7)*pi*k_allom2)&
+            &**(1/(2+k_allom3))
+            height(p) = k_allom2*(diameter(p)**k_allom3)
+            crown_area(p) = k_allom1*(diameter(p)**krp)
+         endif
+      enddo
+      
+   end subroutine pls_allometry
+
+   subroutine density_ind (xmin, xmax, dens)
+      !Subroutine to calculate the initial density of individuals.
+      !This is called in caete.py
+      
+      use types
+      use global_par, only: npls
+
+      !parameters
+      integer(i_4) :: p,t
+      integer(i_4), parameter :: ntl=365
+      integer(i_4), intent(in) :: xmin, xmax
+      real(r_8), dimension(npls), intent(out) :: dens
+      real(r_8), dimension(ntl) :: x !internal variable
+
+      x(:) = 0.
+      
+      call random_number(x)
+      do p = 1, npls
+         do t = 1, ntl
+            if (t .eq. 1) then
+               x(t) = xmin+(xmax-xmin)*x(t)
+               dens(p) = x(t)
+            endif
+         enddo
+      enddo
+
+   end subroutine density_ind
 
 end module photo
 
