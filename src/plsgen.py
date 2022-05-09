@@ -240,7 +240,8 @@ def table_gen(NPLS, fpath=None):
     print("CREATE GRASSy STRATEGIES - Checking potential npp/alocation")
     while index0 < diffg:
         restime = np.zeros(shape=(3,), dtype=np.float64)
-
+        dwood = 0.0
+        sla_var = np.random.uniform(0.009, 0.040, NPLS) #Ref. TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_grass[np.random.randint(0, plsa_grass.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
         restime[1] = 0.0
@@ -261,6 +262,8 @@ def table_gen(NPLS, fpath=None):
     rtime_wood = np.random.uniform(0.20, 100.0, r_ceil)
     while index1 < diffw:
         restime = np.zeros(shape=(3,), dtype=np.float64)
+        dwood = np.random.uniform(0.5, 0.9, NPLS) # [g/cm3]; Global Wood Density Database (Zanne et al., 2009)
+        sla_var = np.random.uniform(0.009, 0.040, NPLS) #[m2/g]; TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_wood[np.random.randint(0, plsa_wood.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
         restime[1] = rtime_wood[np.random.randint(0, r_ceil)]
@@ -328,11 +331,11 @@ def table_gen(NPLS, fpath=None):
     stack = (pls_id, g1, resorption, alloc[:, 0], alloc[:, 1], alloc[:, 2],
              alloc[:, 3], alloc[:, 4], alloc[:, 5], c4, leaf_n2c,
              awood_n2c, froot_n2c, leaf_p2c, awood_p2c, froot_p2c,
-             amp, pdia)
+             amp, pdia, dwood, sla_var)
 
     head = ['PLS_id', 'g1', 'resopfrac', 'tleaf', 'twood', 'troot', 'aleaf', 'awood', 'aroot', 'c4',
             'leaf_n2c', 'awood_n2c', 'froot_n2c', 'leaf_p2c', 'awood_p2c', 'froot_p2c',
-            'amp', 'pdia']
+            'amp', 'pdia', 'dwood', 'sla_var']
 
     if fpath is not None:
 
