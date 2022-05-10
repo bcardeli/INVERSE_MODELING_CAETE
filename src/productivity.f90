@@ -26,8 +26,8 @@ module productivity
 
 contains
 
-  subroutine prod(dt,light_limit,catm,temp,ts,p0,w,ipar,sla1,rh,emax,cl1_prod,&
-       & ca1_prod,cf1_prod,beta_leaf,beta_awood,beta_froot,wmax,ph,ar,&
+  subroutine prod(dt,catm,temp,ts,p0,w,ipar,sla1,rh,emax,cl1_prod,&
+       & ca1_prod,cf1_prod,beta_leaf,beta_awood,beta_froot,height1,max_height,wmax,ph,ar,&
        & nppa,laia,f5,vpd,rm,rg,rc,wue,c_defcit,vm_out,e)
 
     use types
@@ -49,18 +49,20 @@ contains
     real(r_8), intent(in) :: beta_awood
     real(r_8), intent(in) :: beta_froot, wmax
     real(r_8), intent(in) :: sla1
-    logical(l_1), intent(in) :: light_limit                !True for no ligth limitation
+    real(r_8), intent(in) :: height1
+    real(r_8), intent(in) :: max_height
+    ! logical(l_1), intent(in) :: light_limit                !True for no ligth limitation
 
 !     Output
 !     ------
     real(r_4), intent(out) :: ph                   !Canopy gross photosynthesis (kgC/m2/yr)
     real(r_4), intent(out) :: rc                   !Stomatal resistence (not scaled to canopy!) (s/m)
-    real(r_8), intent(out) :: laia                 !Autotrophic respiration (kgC/m2/yr)
-    real(r_4), intent(out) :: ar                   !Leaf area index (m2 leaf/m2 area)
+    real(r_8), intent(out) :: laia                 !Leaf area index (m2 leaf/m2 area) 
+    real(r_4), intent(out) :: ar                   !Autotrophic respiration (kgC/m2/yr)
     real(r_4), intent(out) :: nppa                 !Net primary productivity (kgC/m2/yr)
     real(r_4), intent(out) :: vpd
     real(r_8), intent(out) :: f5                   !Water stress response modifier (unitless)
-    real(r_4), intent(out) :: rm                   !autothrophic respiration (kgC/m2/day)
+    real(r_4), intent(out) :: rm                   !Maintenance respiration (kgC/m2/yr) 
     real(r_4), intent(out) :: rg
     real(r_4), intent(out) :: wue
     real(r_4), intent(out) :: c_defcit     ! Carbon deficit gm-2 if it is positive, aresp was greater than npp + sto2(1)
@@ -110,8 +112,8 @@ contains
 !     ==============
 ! rate (molCO2/m2/s)
 
-    call photosynthesis_rate(catm,temp,p0,ipar,light_limit,c4_int,n2cl,&
-         & p2cl,tleaf,f1a,vm_out,jl_out)
+    call photosynthesis_rate(catm,temp,p0,ipar,sla1,c4_int,n2cl,&
+         & p2cl,cl1_prod,ca1_prod,height1,max_height,f1a,vm_out,jl_out)
 
 
     ! VPD

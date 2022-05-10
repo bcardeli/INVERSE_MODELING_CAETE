@@ -591,8 +591,8 @@ contains
    !=================================================================
    !=================================================================
 
-   subroutine photosynthesis_rate(c_atm, temp,p0,ipar,ll,c4,nbio,pbio,&
-        & leaf_turnover,f1ab,vm, amax)
+   subroutine photosynthesis_rate(c_atm, temp,p0,ipar,sla_var,c4,nbio,pbio,&
+        & cleaf,cawood1,height1,max_height,f1ab,vm, amax)
 
       ! f1ab SCALAR returns instantaneous photosynthesis rate at leaf level (molCO2/m2/s)
       ! vm SCALAR Returns maximum carboxilation Rate (Vcmax) (molCO2/m2/s)
@@ -606,13 +606,21 @@ contains
       real(r_4),intent(in) :: ipar  ! mol Photons m-2 s-1
       real(r_8),intent(in) :: nbio, c_atm  ! mg g-1, ppm
       real(r_8),intent(in) :: pbio  ! mg g-1
-      logical(l_1),intent(in) :: ll ! is light limited?
+      ! logical(l_1),intent(in) :: ll ! is light limited?
       integer(i_4),intent(in) :: c4 ! is C4 Photosynthesis pathway?
-      real(r_8),intent(in) :: leaf_turnover   ! y
+      ! real(r_8),intent(in) :: leaf_turnover   ! y
+      real(r_8),intent(in) :: sla_var
+      real(r_8),intent(in) :: height1
+      real(r_8),intent(in) :: max_height
+      real(r_8),intent(in) :: cawood1
+      real(r_8),intent(in) :: cleaf
+
       ! O
       real(r_8),intent(out) :: f1ab ! Gross CO2 Assimilation Rate mol m-2 s-1
       real(r_8),intent(out) :: vm   ! PLS Vcmax mol m-2 s-1
       real(r_8),intent(out) :: amax ! light saturated PH rate
+
+
 
       real(r_8) :: f2,f3            !Michaelis-Menten CO2/O2 constant (Pa)
       real(r_8) :: mgama,vm_in      !Photo-respiration compensation point (Pa)
@@ -642,6 +650,30 @@ contains
       ! real(r_8) :: nmgg, pmgg
       ! real(r_8) :: coeffa, coeffb
 
+      !Internal Variables [LIGHT COMPETITION] ---------------------------------------
+      integer(i_4) :: n
+      real(r_8) :: index_leaf
+      integer(i_4) :: num_layer !number of layers according to max height in each grid-cel
+      real(r_8) :: layer_size !size of each layer in m. in each grid-cell
+      integer(i_4) :: last_with_pls !last layer contains PLS
+      real(r_8) :: llight
+
+      type :: layer_array
+         real(r_8) :: sum_height
+         integer(i_4) :: num_height !!corresponds to the number of layers according max height of PLS.
+         real(r_8) :: mean_height !Mean of heights in a layer
+         real(r_8) :: layer_height !Height of respective layer of the floor (in m.)
+         real(r_8) :: sum_LAI !LAI sum in a layer
+         real(r_8) :: mean_LAI !mean LAI in a layer
+         real(r_8) :: beers_law !layer's light extinction
+         real(r_8) :: linc !layer's light incidence
+         real(r_8) :: lused !layer's light used (relates to light extinction - Beers Law)
+         real(r_8) :: lavai !light availability
+         integer(i_4) :: layer_id !identify layers
+      end type layer_array
+
+      type(layer_array), allocatable :: layer(:)
+
       nbio2 = nbio !nrubisco(leaf_turnover, nbio)
       pbio2 = pbio !nrubisco(leaf_turnover, pbio)
 
@@ -666,7 +698,8 @@ contains
 
       ! vm_nutri = coeffa + (coeffb * dlog10(nbio2))
 
-      vm = vcmax_a(nbio2, pbio2, spec_leaf_area(leaf_turnover)) ! 10**vm_nutri * 1D-6  ! 
+      ! vm = vcmax_a(nbio2, pbio2, spec_leaf_area(leaf_turnover)) ! 10**vm_nutri * 1D-6  !
+      vm = vcmax_a(nbio2, pbio2, sla_var) ! 10**vm_nutri * 1D-6  ! 
       if(vm + 1 .eq. vm) vm = 1.0D-5 ! If Vc max is inf give it a low value
       if(vm .gt. p25) vm = p25
 
@@ -674,6 +707,142 @@ contains
       vm_in = (vm*2.0D0**(0.1D0*(temp-25.0D0)))/(1.0D0+dexp(0.3D0*(temp-36.0)))
       if(vm_in + 1 .eq. vm_in) vm_in = p25 - 5.0D-5
       if(vm_in .gt. p25) vm_in = p25
+
+
+      !========================= LIGHT COMPETITION =============================!
+      !         Code by: Bárbara Cardeli, Bianca Rius and Caio Fascina          !
+      !                               START                                     !
+
+      index_leaf = leaf_area_index(cleaf, sla_var)
+
+      ! =================================================
+      !       LIGHT COMPETITION DYNAMIC. [LAYERS]
+      ! =================================================
+
+      num_layer = 0
+      layer_size = 0.0D0
+
+      num_layer = nint(max_height/5)
+      ! print*, 'num layer is', num_layer, 'max_height=', max_height
+
+      allocate(layer(1:num_layer))
+
+      layer_size = max_height/num_layer !length from one layer to another
+      ! print*, 'layer_size', layer_size
+     
+      last_with_pls=num_layer
+      !print*, 'LAST', last_with_pls
+
+      do n = 1,num_layer
+         layer(n)%layer_height = 0.0D0
+         layer(n)%layer_height=layer_size*n
+      end do
+
+      do n = 1, num_layer
+         !Inicialize variables relates layers dynamics
+         layer(n)%num_height = 0.0D0
+         layer(n)%sum_height = 0.0D0
+         layer(n)%mean_height = 0.0D0
+         layer(n)%sum_lai = 0.0D0 
+      enddo
+
+      do n = 1, num_layer
+
+         if ((layer(n)%layer_height .ge. height1).and.&
+         &(layer(n-1)%layer_height .lt. height1)) then     
+            layer(n)%sum_height=&
+            &layer(n)%sum_height + height1
+            layer(n)%num_height=&
+            &layer(n)%num_height+1
+            layer(n)%sum_lai=&    
+            &layer(n)%sum_lai + index_leaf
+         end if
+
+         layer(n)%mean_height = layer(n)%sum_height/&
+         &layer(n)%num_height
+         if(layer(n)%sum_height .eq. 0.0D0) then
+            layer(n)%mean_height = 0.0D0
+         endif
+         layer(n)%mean_lai=layer(n)%sum_lai/&
+         &layer(n)%num_height
+         if(layer(n)%sum_lai .eq. 0.0D0) then
+            layer(n)%mean_lai = 0.0D0
+         end if
+      end do
+
+      ! ======================================================
+      !       LIGHT COMPETITION DYNAMIC. [EXTINCTION LIGHT]
+      ! ======================================================
+
+      !! INICIALIZE VARIABLES !!
+      do n = 1, num_layer
+         layer(n)%linc = 0.0D0
+         layer(n)%lavai = 0.0D0
+         layer(n)%lused = 0.0D0
+      enddo
+         
+      !=================== Beer's Law ========================
+      do n = num_layer,1,-1
+         layer(n)%beers_law = ipar*&
+         &(1-exp(-0.5*layer(n)%mean_lai))
+      enddo
+      !=======================================================
+
+      ! ======================================================
+      !       LIGHT COMPETITION DYNAMIC. [LIGHTS DYNAMIC]
+      ! ======================================================
+
+      do n = num_layer,1,-1
+         if(n.eq.num_layer) then
+            layer(n)%linc = ipar
+         else
+            if(layer(n)%mean_height.gt.0.0D0) then
+               layer(n)%linc = layer(last_with_pls)%lavai
+               last_with_pls=n
+            else
+               continue
+            endif
+         endif
+         layer(n)%lused = layer(n)%linc*(1-exp(-0.5*layer(n)%mean_LAI))
+         layer(n)%lavai = layer(n)%linc - layer(n)%lused
+      enddo
+
+      ! ======================================================
+      !    LIGHT COMPET. PHOTOSYNTHESIS PUNISHMENT 
+      ! ======================================================
+
+      ! Identifying the layers and allocate each PLS to punishment photosyntesis.
+
+      !! INICIALIZE VARIABLES !!
+      do n = 1, num_layer
+         layer(n)%layer_id = 0.0D0
+         llight = 0.0D0
+      enddo
+
+      do n = num_layer, 1, -1
+         if (cawood1.eq.0.0D0) then
+            aux_ipar = ipar
+            llight = ipar
+         else
+            if (n.eq.num_layer) then 
+               layer(n)%layer_id = num_layer
+               if (height1.le.max_height.and.height1.gt.layer(n-1)%layer_height) then 
+                  llight = ipar
+                  aux_ipar = ipar
+                  ! print*, n, 'LL TOP=', llight, 'aux_ipar', aux_ipar,'ipar', ipar
+               endif
+            else
+               layer(n)%layer_id = layer(n+1)%layer_id-1  
+               if (height1.le.layer(n)%layer_height.and.height1.gt.layer(n-1)%layer_height) then
+                  llight = (layer(n)%lavai/ipar)
+                  aux_ipar = ipar - (ipar*llight) !limitation in % of IPAR total. 
+                  ! print*, n, 'LL ABOVE % =', llight, 'aux_ipar', aux_ipar, 'ipar', ipar
+               endif
+            endif 
+         endif  
+      enddo
+
+      !============================  END  ========================================================
 
       if(c4 .eq. 0) then
          !====================-C3 PHOTOSYNTHESIS-===============================
@@ -694,11 +863,12 @@ contains
          !Rubisco carboxilation limited photosynthesis rate (molCO2/m2/s)
          jc = vm_in*((ci-mgama)/(ci+(f2*(1.+(p3/f3)))))
          !Light limited photosynthesis rate (molCO2/m2/s)
-         if (ll) then
-            aux_ipar = ipar
-         else
-            aux_ipar = ipar - (ipar * 0.20)
-         endif
+         ! if (ll) then
+         !    aux_ipar = ipar
+         ! else
+         !    aux_ipar = ipar - (ipar * 0.20)
+         ! endif
+         
          jl = p4*(1.0-p5)*aux_ipar*((ci-mgama)/(ci+(p6*mgama)))
          amax = jl
 
@@ -736,11 +906,11 @@ contains
          t25 = 273.15 + 25.0          ! K
          kp = kp25 * (2.1**(0.1*(tk-t25))) ! ppm
 
-         if (ll) then
-            aux_ipar = ipar
-         else
-            aux_ipar = ipar - (ipar * 0.20)
-         endif
+         ! if (ll) then
+         !    aux_ipar = ipar
+         ! else
+         !    aux_ipar = ipar - (ipar * 0.20)
+         ! endif
 
          ipar1 = aux_ipar * 1e6  ! µmol m-2 s-1 - 1e6 converts mol to µmol
 

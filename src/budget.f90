@@ -162,12 +162,13 @@ contains
       integer(i_2),dimension(:,:),allocatable   :: limitation_status ! D0=3
       integer(i_4), dimension(:, :),allocatable :: uptk_strat        ! D0=2
       INTEGER(i_4), dimension(:), allocatable :: lp ! index of living PLSs/living grasses
+      real(r_8),dimension(:), allocatable :: height_int
 
       real(r_8), dimension(npls) :: awood_aux, nleaf, nwood, nroot, uptk_costs, pdia_aux, dwood_aux, sla_aux
       real(r_8), dimension(3,npls) :: sto_budg
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
-      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, dens_aux
+      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux !dens_aux
       real(r_8) :: max_height
       
       
@@ -273,6 +274,8 @@ contains
       allocate(cf2(nlen))
       allocate(ca2(nlen))
       allocate(day_storage(3,nlen))
+      allocate(height_int(nlen))
+
 
       !     Maximum evapotranspiration   (emax)
       !     =================================
@@ -306,17 +309,18 @@ contains
          ri = lp(p)
          dt1 = dt(:,ri) ! Pick up the pls functional attributes list
 
-         ! height_int(p) = height_aux(ri)
+         height_int(p) = height_aux(ri)
          ! dens_aux(p) = dens_in(p)
 
-         call prod(dt1, ocp_wood(ri),catm, temp, soil_temp, p0, w, ipar, sla_aux(p),rh, emax&
+         call prod(dt1,catm, temp, soil_temp, p0, w, ipar, sla_aux(p),rh, emax&
                &, cl1_pft(ri), ca1_pft(ri), cf1_pft(ri), nleaf(ri), nwood(ri), nroot(ri)&
-               &, soil_sat, ph(p), ar(p), nppa(p), laia(p), f5(p), vpd(p), rm(p), rg(p), rc2(p)&
+               &, height_aux(ri), max_height, soil_sat, ph(p), ar(p), nppa(p), laia(p), f5(p), vpd(p), rm(p), rg(p), rc2(p)&
                &, wue(p), c_def(p), vcmax(p), tra(p))
 
          evap(p) = penman(p0,temp,rh,available_energy(temp),rc2(p)) !Actual evapotranspiration (evap, mm/day)
-
-         ! print*, 'SLA_VAR', sla_aux(p), laia(p), p
+         
+         ! print*, 'SLA_VAR', sla_aux(p), 'LAI=', laia(p), p
+         ! print*, 'CLEAF=', cl1_pft(ri), 'CAWOOD=', ca1_pft(ri), p
 
          ! Check if the carbon deficit can be compensated by stored carbon
          carbon_in_storage = sto_budg(1, ri)
@@ -472,6 +476,8 @@ contains
       cp(2) = sum(ca1_int * (ocp_coeffs * idx_grasses), mask= .not. isnan(ca1_int))
       cp(3) = sum(cf1_int * ocp_coeffs, mask= .not. isnan(cf1_int))
       cp(4) = sum(ar_fix_hr * (ocp_coeffs * idx_pdia), mask= .not. isnan(ar_fix_hr))
+
+
       ! FILTER BAD VALUES
       do p = 1,2
          do i = 1, nlen
@@ -569,6 +575,7 @@ contains
       DEALLOCATE(idx_grasses)
       DEALLOCATE(idx_pdia)
       DEALLOCATE(ar_fix_hr)
+      deallocate(height_int)
 
       
    end subroutine daily_budget
