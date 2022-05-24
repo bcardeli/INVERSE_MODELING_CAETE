@@ -663,8 +663,8 @@ contains
          integer(i_4) :: num_height !!corresponds to the number of layers according max height of PLS.
          real(r_8) :: mean_height !Mean of heights in a layer
          real(r_8) :: layer_height !Height of respective layer of the floor (in m.)
-         real(r_8) :: sum_LAI !LAI sum in a layer
-         real(r_8) :: mean_LAI !mean LAI in a layer
+         real(r_8) :: sum_lai !LAI sum in a layer
+         real(r_8) :: mean_lai !mean LAI in a layer
          real(r_8) :: beers_law !layer's light extinction
          real(r_8) :: linc !layer's light incidence
          real(r_8) :: lused !layer's light used (relates to light extinction - Beers Law)
@@ -803,7 +803,7 @@ contains
                continue
             endif
          endif
-         layer(n)%lused = layer(n)%linc*(1-exp(-0.5*layer(n)%mean_LAI))
+         layer(n)%lused = layer(n)%linc*(1-exp(-0.5*layer(n)%mean_lai))
          layer(n)%lavai = layer(n)%linc - layer(n)%lused
       enddo
 

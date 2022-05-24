@@ -86,10 +86,10 @@ def run_experiment(pls_table):
     cax_grd.run_caete('19790101', '19991231', spinup=15,
                        fix_co2='1999', save=True)
     
-    cax_grd.pr[idx0:idx1 + 1] *= 0.01 
+    # cax_grd.pr[idx0:idx1 + 1] *= 0.01 
 
     # Run the experiment!
-    cax_grd.run_caete('20000101', '20151231', spinup=1, save=True)
+    cax_grd.run_caete('19790101', '20151231', spinup=1, save=True)
     tm.close()
     return cax_grd
 

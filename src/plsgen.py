@@ -235,13 +235,16 @@ def table_gen(NPLS, fpath=None):
     index0 = 0
     # rtime = vec_ranging(np.random.beta(2, 4, r_ceil),
     #                     0.083333, 2)
-    rtime_leaf = np.random.uniform(0.166, 8.3333, r_ceil)
+    #rtime_leaf = np.random.uniform(0.166, 8.3333, r_ceil)
+
+
+    rtime_leaf = np.random.uniform(2., 8.3333, r_ceil)
     rtime_froot = np.random.uniform(0.08333, 8.3333, r_ceil)
-    print("CREATE GRASSy STRATEGIES - Checking potential npp/alocation")
+    print("CREATE GRASSY STRATEGIES - Checking potential npp/alocation")
     while index0 < diffg:
         restime = np.zeros(shape=(3,), dtype=np.float64)
         dwood = 0.0
-        sla_var = np.random.uniform(0.009, 0.040, NPLS) #Ref. TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
+        sla_var = np.random.uniform(0.009, 0.040, NPLS) #(0.009-0.040) TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_grass[np.random.randint(0, plsa_grass.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
         restime[1] = 0.0
@@ -263,7 +266,7 @@ def table_gen(NPLS, fpath=None):
     while index1 < diffw:
         restime = np.zeros(shape=(3,), dtype=np.float64)
         dwood = np.random.uniform(0.5, 0.9, NPLS) # [g/cm3]; Global Wood Density Database (Zanne et al., 2009)
-        sla_var = np.random.uniform(0.009, 0.040, NPLS) #[m2/g]; TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
+        sla_var = np.random.uniform(0.009, 0.040, NPLS) #(0.009-0.040) [m2/g]; TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_wood[np.random.randint(0, plsa_wood.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
         restime[1] = rtime_wood[np.random.randint(0, r_ceil)]
