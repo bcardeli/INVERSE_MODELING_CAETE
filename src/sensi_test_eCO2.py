@@ -29,13 +29,11 @@ from parameters import BASE_RUN, ATTR_FILENAME, run_path, pls_path
 
 # Experiment - eCO2 600 ppm - HISTORICAL
 
-
-
 assert run_path.exists(), "Wrong path to initial conditions"
 assert pls_path.exists(), "Wrong path to Attributes Table"
 
 # new outputs folder
-dump_folder = Path(f"{BASE_RUN}_eCO2")
+dump_folder = Path(f"{BASE_RUN}_eCO2_850")
 
 with open(run_path, 'rb') as fh:
     init_conditions = joblib.load(fh)
@@ -56,7 +54,7 @@ def zip_gridtime(grd_pool, interval):
 
 
 def apply_fun_eCO2(grid, brk):
-    grid.run_caete(brk[0], brk[1], fix_co2=600)
+    grid.run_caete("19790101", "20161231", fix_co2=850.0)
     return grid
 
 

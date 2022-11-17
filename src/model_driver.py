@@ -146,8 +146,8 @@ if not sombrero:
         zone = 'c'
 
 if zone == 'c':
-    y0, y1 = 175, 178 #175, 186
-    x0, x1 = 235, 237 #235, 241
+    y0, y1 = 175, 186
+    x0, x1 = 235, 241
     folder = "central"
 
 elif zone == 's':
@@ -232,10 +232,12 @@ if sombrero:
         rbrk_index = 1
         
         # READ the PLS table employed in the base run
-        from parameters import pls_path
+        from parameters import pls_path, ATTR_FILENAME
         if pls_path.exists():
             from caete_utils import read_pls_table
             print("Using PLS TABLE from BASE_RUN")
+            os.makedirs(dump_folder, exist_ok=True)
+            pls_table = read_pls_table(out=Path(os.path.join(dump_folder, ATTR_FILENAME)))
             pls_table = read_pls_table()
         else:
             print(f"WARNING: Creating a new PLS table for a historical simulated ({outf}) run ")

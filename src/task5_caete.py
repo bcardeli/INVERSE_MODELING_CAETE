@@ -193,6 +193,10 @@ if __name__ == "__main__":
 
         with mp.Pool(processes=4) as p:
             GRD_CELLS_hist_obs = p.map(transient_run_hist_obs, GRD_CELLS_IC)
+        for grd in GRD_CELLS_hist_obs:
+            fpathin = f"../outputs/{grd.plot_name}"
+            fname = f"{grd.grid_filename}/spin01.pkz"
+            pkz2csv(os.path.join(fpathin, fname), fpathin, f"{grd.grid_filename}" , 'hist_obs')
     
     elif RUN_NAME == 2:
         
