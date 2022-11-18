@@ -168,7 +168,7 @@ contains
       real(r_8), dimension(3,npls) :: sto_budg
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
-      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux !dens_aux
+      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, npp_ind, var_test !dens_aux
       real(r_8) :: max_height
       
       
@@ -348,9 +348,15 @@ contains
          !     =====================================================
          call allocation (dt1,nppa(p),uptk_costs(ri), soil_temp, w, tra(p)&
             &, mineral_n,labile_p, on, sop, op, cl1_pft(ri),ca1_pft(ri)&
-            &, cf1_pft(ri),storage_out_bdgt(:,p),day_storage(:,p),cl2(p),ca2(p)&
+            &, cf1_pft(ri),storage_out_bdgt(:,p),day_storage(:,p), height_int(p),cl2(p),ca2(p)&
             &, cf2(p),litter_l(p),cwd(p), litter_fr(p),nupt(:,p),pupt(:,p)&
-            &, lit_nut_content(:,p), limitation_status(:,p), npp2pay(p), uptk_strat(:, p), ar_aux)
+            &, lit_nut_content(:,p), limitation_status(:,p), npp2pay(p), uptk_strat(:, p), ar_aux,&
+            & npp_ind(p))
+
+            if (height_int(p) .gt. 0.0D0) then
+               print*, 'incremento', npp_ind(p)
+            endif
+
 
          ! Estimate growth of storage C pool
          ar_fix_hr(p) = ar_aux

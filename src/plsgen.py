@@ -140,8 +140,8 @@ def calc_ratios1(NPLS):
     # Global patterns of plant leaf N and P in relation to temperature and latitude. 
     # Proceedings of the National Academy of Sciences, 101(30), 11001–11006. 
     # https://doi.org/10.1073/pnas.0403588101
-    N0 = 0.016
-    NM = 0.052
+    N0 = 0.001
+    NM = 0.05
     P0 = 0.0002
     PM = 0.0095
 
@@ -244,7 +244,7 @@ def table_gen(NPLS, fpath=None):
     while index0 < diffg:
         restime = np.zeros(shape=(3,), dtype=np.float64)
         dwood = 0.0
-        sla_var = np.random.uniform(0.002, 0.040, NPLS) #(0.009-0.040) TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
+        sla_var = np.random.uniform(0.009, 0.040, NPLS) #(0.009-0.040) TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_grass[np.random.randint(0, plsa_grass.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
         restime[1] = 0.0
@@ -265,8 +265,8 @@ def table_gen(NPLS, fpath=None):
     rtime_wood = np.random.uniform(0.20, 100.0, r_ceil)
     while index1 < diffw:
         restime = np.zeros(shape=(3,), dtype=np.float64)
-        dwood = np.random.uniform(0.1, 1.25, NPLS) # [g/cm3]; Global Wood Density Database (Zanne et al., 2009)
-        sla_var = np.random.uniform(0.002, 0.040, NPLS) #(0.009-0.040) [m2/g]; TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
+        dwood = np.random.uniform(0.5, 0.9, NPLS) # [g/cm3]; Global Wood Density Database (Zanne et al., 2009)
+        sla_var = np.random.uniform(0.009, 0.040, NPLS) #(0.009-0.040) [m2/g]; TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_wood[np.random.randint(0, plsa_wood.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
         restime[1] = rtime_wood[np.random.randint(0, r_ceil)]
