@@ -168,7 +168,7 @@ contains
       real(r_8), dimension(3,npls) :: sto_budg
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
-      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, npp_ind, var_test !dens_aux
+      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2 !dens_aux
       real(r_8) :: max_height
       
       
@@ -351,10 +351,11 @@ contains
             &, cf1_pft(ri),storage_out_bdgt(:,p),day_storage(:,p), height_int(p),cl2(p),ca2(p)&
             &, cf2(p),litter_l(p),cwd(p), litter_fr(p),nupt(:,p),pupt(:,p)&
             &, lit_nut_content(:,p), limitation_status(:,p), npp2pay(p), uptk_strat(:, p), ar_aux,&
-            & npp_ind(p))
+            & lm2(p), cw2(p), rm2(p))
 
             if (height_int(p) .gt. 0.0D0) then
-               print*, 'incremento', npp_ind(p)
+               print*, 'leaf mass [normal]', lm2(p), &
+               &'wood mass [normal]', cw2(p), 'root mass [normal]', rm2(p)
             endif
 
 
