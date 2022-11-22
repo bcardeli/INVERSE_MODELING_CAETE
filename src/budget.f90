@@ -170,7 +170,7 @@ contains
       real(r_8), dimension(3,npls) :: sto_budg
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
-      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2 !fpc_ind1, fpc_grid1 !dens_aux
+      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2, fpc_ind1, fpc_grid1 !dens_aux
       real(r_8) :: max_height
       
       
@@ -211,11 +211,6 @@ contains
       &                   crown_aux)
 
       max_height = maxval(height_aux(:))
-
-      ! call density_ind (1, 10, dens_aux)
-
-      ! call foliage_projective(crown_aux, laia, awood_aux, fpc_ind1, fpc_grid1)
-      ! print*, 'FPC_grid', fpc_grid1
 
 
       nlen = sum(run)    ! New length for the arrays in the main loop
@@ -359,6 +354,7 @@ contains
 
          !     Carbon/Nitrogen/Phosphorus allocation/deallocation
          !     =====================================================
+
          call allocation (dt1,nppa(p),uptk_costs(ri), soil_temp, w, tra(p)&
             &, mineral_n,labile_p, on, sop, op, cl1_pft(ri),ca1_pft(ri)&
             &, cf1_pft(ri),storage_out_bdgt(:,p),day_storage(:,p), height_int(p),cl2(p),ca2(p)&
@@ -366,10 +362,17 @@ contains
             &, lit_nut_content(:,p), limitation_status(:,p), npp2pay(p), uptk_strat(:, p), ar_aux,&
             & lm2(p), cw2(p), rm2(p))
 
-            if (height_int(p) .gt. 0.0D0) then
-               print*, 'leaf mass [abnormal]', lm2(p), &
-               &'wood mass [abnormal]', cw2(p), 'root mass [abnormal]', rm2(p)
-            endif
+            ! if (height_int(p) .gt. 0.0D0) then
+            !    print*, 'leaf mass [abnormal]', lm2(p), &
+            !    &'wood mass [abnormal]', cw2(p), 'root mass [abnormal]', rm2(p)
+            ! endif
+
+         call foliage_projective (crown_aux(p), laia(p), awood_aux(p), fpc_ind1(p), fpc_grid1(p))
+         
+         ! if (awood_aux(p) .gt. 0.0D0) then
+         !    print*, 'FPC_ind', fpc_ind1(p), 'crown_area', crown_aux(p), 'FPC_grid', fpc_grid1(p), p
+         ! endif
+
 
 
          ! Estimate growth of storage C pool
