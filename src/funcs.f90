@@ -55,7 +55,8 @@ module photo
         leap                   ,&
         ttype                  ,&
         pls_allometry          ,& ! (s) Plant life strategies allometry (height, diameter, crown area) functions
-        density_ind               !logic to density number (randon - to the inicialization)
+        density_ind            ,& ! (s) logic to density number (randon - to the inicialization)
+        mort_occupation           ! (s) logic to mortality relates to occupation/FPC
 
 contains
 
@@ -1476,33 +1477,41 @@ contains
       integer(i_4) :: p
       real(r_8),dimension(ntraits, npls),intent(in) :: dt
       real(r_8),dimension(npft),intent(in) :: cawood1, awood
-      real(r_8),dimension(npft),intent(out) :: height, diameter, crown_area
-      real(r_8),dimension(npft) :: cawood, dwood
+      real(r_8),dimension(npft),intent(out) :: height, diameter, crown_area !fpc_ind, fpc_grid
+      real(r_8),dimension(npft) :: cawood, dwood, crown_area_max
+      !5 = número de individuos arbitrário
 
       
       ! ============================
       dwood = dt(18,:)
       cawood = cawood1
+      crown_area_max = 30.0 !m2 !number from lplmfire code (establishment.f90)
       ! ============================
     
       do p = 1, npft !INICIALIZE OUTPUTS VARIABLES
          height(p) = 0.0D0
          diameter(p) = 0.0D0
          crown_area(p) = 0.0D0
+         ! FPC_ind(p) = 0.0D0
+         ! FPC_grid(p) = 0.0D0
       enddo
 
       !PLS DIAMETER (in m.)
       do p = 1, npft !to grasses
          if(awood(p) .le. 0.0D0) then
             height(p) = 0.0D0 !in m.
-            diameter(p) = 0.0D0 !in m.
-            crown_area(p) = 0.0D0 !in m2.
+            diameter(p) = 0.0D0 !in m./ind
+            crown_area(p) = 0.0D0 !in m2./ind
             dwood(p) = 0.0D0
+            ! FPC_ind(p) = 0.0D0
+            ! FPC_grid(p) = 0.0D0
          else
-            diameter(p) = (4*(cawood(p)*1.0D3)/(dwood(p)*1D7)*pi*k_allom2)&
+            diameter(p) = (4*((cawood(p)*1.0D3)/5)/(dwood(p)*1.0D6)*pi*k_allom2)&
             &**(1/(2+k_allom3))
             height(p) = k_allom2*(diameter(p)**k_allom3)
-            crown_area(p) = k_allom1*(diameter(p)**krp)
+            crown_area(p) = (k_allom1*(diameter(p)**krp))
+            ! FPC_ind(p) = (1-(exp(-0.5*(lai1(p)))))
+            ! FPC_grid(p) = (crown_area(p) * 5 * FPC_ind(p))
          endif
       enddo
       
@@ -1535,6 +1544,77 @@ contains
       enddo
 
    end subroutine density_ind
+
+   ! subroutine foliage_projective (crown_area, lai, awood, FPC_ind, FPC_grid)
+
+   !    use types 
+   !    use global_par
+   !    use allometry_par
+
+   !    integer(i_4),parameter :: npft = npls 
+   !    integer(i_4) :: p
+   !    real(r_8),dimension(npft),intent(in) :: crown_area, lai
+   !    real(r_8),dimension(npft),intent(in) ::  awood
+   !    real(r_8),dimension(npft),intent(out) :: FPC_ind, FPC_grid
+
+
+   !    !Calculation Foliage Projective Cover of average individual(FPC_ind), of the PLS(FPC_pls)
+   !    !in the grid cell (FPC_total)
+
+   !    if(awood(p) .le. 0.0D0) then
+   !       FPC_ind(p) = 0.0D0
+   !       FPC_grid(p) = 0.0D0
+   !    else
+   !       do p = 1, npft
+   !          FPC_ind(p) = (1-(exp(-0.5*(lai(p)/5))))
+   !          !print*, 'fpcind', FPC_ind(j,k)
+      
+   !          FPC_grid(p) = ((crown_area(p)/5) * 5 * FPC_ind(p)) 
+
+   !       enddo
+   !    endif
+
+   ! end subroutine foliage_projective
+
+   subroutine mort_occupation (FPC_grid, accu_fpc, nind_kill_fpc)
+
+      use types 
+      use global_par
+
+      integer(i_4),parameter :: npft = npls 
+      integer(i_4) :: p
+      real(r_8),dimension(npft),intent(in) :: FPC_grid
+      real(r_8),dimension(npft),intent(out) :: accu_fpc
+      real(r_8),dimension(npft),intent(out) :: nind_kill_fpc
+      real(r_8),dimension(npft) :: exc_area, red_fpc
+      real(r_8) :: fpc_max_tree
+
+      fpc_max_tree = gc_area*0.95
+
+      if (accu_fpc(p) .gt. fpc_max_tree) then
+         !ULTRAPASSOU - Mortality relates FPC
+
+         exc_area(p) = accu_fpc(p) - fpc_max_tree
+
+         do p = 1, npft
+            if (FPC_grid(p).gt.0.D0) then !se a ocupação é maior q zero = PLS vivo.
+               red_fpc(p) = min(FPC_grid(p), exc_area(p)*(FPC_grid(p)/accu_fpc(p)))
+            else 
+               red_fpc(p) = 0.0D0
+            endif
+
+            if (red_fpc(p).le.0.) then
+               nind_kill_fpc(p) = 0.0D0
+            else
+               nind_kill_fpc(p) = (5*red_fpc(p))/FPC_grid(p) !NIND_KILL.
+               !numero de ind. que vão morrer (ind/m2) devido ocupação maior que 95%
+            endif
+
+         enddo
+
+      endif
+
+   end subroutine mort_occupation
 
 end module photo
 

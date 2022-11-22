@@ -189,9 +189,9 @@ module alloc
       real(r_8) :: negative_one
       real(r_8) :: aux_on, aux_sop, aux_op
 
-      ! -------------------- TEST NEW ALLOCATION VARIABLES
+      ! -------------------- NEW ALLOCATION VARIABLES ------------------------------
 
-      real(r_8),parameter :: pi   =  3.14159265
+      real(r_8),parameter :: pi   =  3.14159265 !TEM NO GLOBAL
       real(r_8),parameter :: xacc =  0.1     !x-axis precision threshold for the allocation solution
       real(r_8),parameter :: yacc =  1.e-10  !y-axis precision threshold for the allocation solution
       integer(i_4),parameter :: ntl=365
@@ -199,18 +199,18 @@ module alloc
       integer(i_4) :: i
       integer, parameter :: stdout = output_unit
       integer(i_4) :: xmin, xmax
-      real(r_8) :: allom1 = 100               !allometric constants
-      real(r_8) :: allom2 = 40.0              !allometric constants
-      real(r_8) :: allom3 = 0.5               !allometric constants
-      real(r_8) :: latosa = 8.000              !leaf to sapwood relation
-      real(r_8) :: reinickerp = 1.6           !reinicker constants
-      real(r_8) :: ltor = 0.77302587552347657 !leaf:root from Philip
+      real(r_8) :: allom1 = 100               !allometric constants TEM NO GLOBAL
+      real(r_8) :: allom2 = 36.0              !allometric constants TEM NO GLOBAL
+      real(r_8) :: allom3 = 0.22               !allometric constants TEM NO GLOBAL 
+      real(r_8) :: latosa = 6.000              !leaf to sapwood relation TEM NO GLOBAL
+      real(r_8) :: reinickerp = 1.6           !reinicker constants TEM NO GLOBAL
+      real(r_8) :: ltor = 0.77302587552347657 !leaf:root from Philip TEM NO GLOBAL
 
       ! real(r_8),intent(in) :: nind ! m2 - input
       real(r_8) :: nind = 3
 
       !LOCAL VARIABLES
-      real(r_8) :: npp_ind  !gC/ind - individual total biomass increment this year 
+      real(r_8) :: npp_ind        !gC/ind - individual total biomass increment this year 
       real(r_8) :: lm2rm          !ratio of leafmass to fine rootmass
       real(r_8) :: lminc_ind      !individual leafmass increment this year
       real(r_8) :: rminc_ind      !individual fineroot mass increment this year

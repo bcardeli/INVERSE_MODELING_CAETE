@@ -163,12 +163,14 @@ contains
       integer(i_4), dimension(:, :),allocatable :: uptk_strat        ! D0=2
       INTEGER(i_4), dimension(:), allocatable :: lp ! index of living PLSs/living grasses
       real(r_8),dimension(:), allocatable :: height_int
+      ! real(r_8),dimension(:), allocatable :: fpc_int
+      ! real(r_8),dimension(:), allocatable :: fpc_grid_int
 
       real(r_8), dimension(npls) :: awood_aux, nleaf, nwood, nroot, uptk_costs, pdia_aux, dwood_aux, sla_aux
       real(r_8), dimension(3,npls) :: sto_budg
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
-      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2 !dens_aux
+      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2 !fpc_ind1, fpc_grid1 !dens_aux
       real(r_8) :: max_height
       
       
@@ -209,6 +211,12 @@ contains
       &                   crown_aux)
 
       max_height = maxval(height_aux(:))
+
+      ! call density_ind (1, 10, dens_aux)
+
+      ! call foliage_projective(crown_aux, laia, awood_aux, fpc_ind1, fpc_grid1)
+      ! print*, 'FPC_grid', fpc_grid1
+
 
       nlen = sum(run)    ! New length for the arrays in the main loop
       allocate(lp(nlen))
@@ -275,6 +283,8 @@ contains
       allocate(ca2(nlen))
       allocate(day_storage(3,nlen))
       allocate(height_int(nlen))
+      ! allocate(fpc_int(nlen))
+      ! allocate(fpc_grid_int(nlen))
 
 
       !     Maximum evapotranspiration   (emax)
@@ -310,7 +320,10 @@ contains
          dt1 = dt(:,ri) ! Pick up the pls functional attributes list
 
          height_int(p) = height_aux(ri)
-         ! dens_aux(p) = dens_in(p)
+         ! fpc_int(p) = fpc_ind1(ri)
+         ! fpc_grid_int(p) = fpc_grid1(ri)
+
+         ! print*, 'FPC IND', fpc_int(p), 'FPC GRID', fpc_grid_int(p)
 
          call prod(dt1,catm, temp, soil_temp, p0, w, ipar, sla_aux(p),rh, emax&
                &, cl1_pft(ri), ca1_pft(ri), cf1_pft(ri), nleaf(ri), nwood(ri), nroot(ri)&
@@ -354,8 +367,8 @@ contains
             & lm2(p), cw2(p), rm2(p))
 
             if (height_int(p) .gt. 0.0D0) then
-               print*, 'leaf mass [normal]', lm2(p), &
-               &'wood mass [normal]', cw2(p), 'root mass [normal]', rm2(p)
+               print*, 'leaf mass [abnormal]', lm2(p), &
+               &'wood mass [abnormal]', cw2(p), 'root mass [abnormal]', rm2(p)
             endif
 
 
@@ -583,6 +596,8 @@ contains
       DEALLOCATE(idx_pdia)
       DEALLOCATE(ar_fix_hr)
       deallocate(height_int)
+      ! deallocate(fpc_int)
+      ! deallocate(fpc_grid_int)
 
       
    end subroutine daily_budget

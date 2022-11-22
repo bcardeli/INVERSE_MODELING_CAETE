@@ -58,6 +58,7 @@ module global_par
    real(r_4),parameter,public :: ks = 0.25                       ! P Sorption
    integer(i_4),parameter,public :: npls = {s}                  ! Number of Plant Life Strategies-PLSs simulated (Defined at compile time)
    integer(i_4),parameter,public :: ntraits = 19                 ! Number of traits for each PLS
+   integer(i_4),parameter,public :: gc_area = 10000
 
 end module global_par
 
