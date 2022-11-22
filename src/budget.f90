@@ -163,14 +163,14 @@ contains
       integer(i_4), dimension(:, :),allocatable :: uptk_strat        ! D0=2
       INTEGER(i_4), dimension(:), allocatable :: lp ! index of living PLSs/living grasses
       real(r_8),dimension(:), allocatable :: height_int
-      ! real(r_8),dimension(:), allocatable :: fpc_int
+      real(r_8),dimension(:), allocatable :: crown_int
       ! real(r_8),dimension(:), allocatable :: fpc_grid_int
 
       real(r_8), dimension(npls) :: awood_aux, nleaf, nwood, nroot, uptk_costs, pdia_aux, dwood_aux, sla_aux
       real(r_8), dimension(3,npls) :: sto_budg
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
-      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2, fpc_ind1, fpc_grid1 !dens_aux
+      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2, fpc_ind1, fpc_pls1 !dens_aux
       real(r_8) :: max_height
       
       
@@ -209,6 +209,9 @@ contains
 
       call pls_allometry(dt, ca1_pft,awood_aux, height_aux, diameter_aux,&
       &                   crown_aux)
+
+      ! print*, 'CAWOOD (kg/m2)', ca1_pft
+      ! print*, 'DIAMETER', diameter_aux
 
       max_height = maxval(height_aux(:))
 
@@ -278,7 +281,7 @@ contains
       allocate(ca2(nlen))
       allocate(day_storage(3,nlen))
       allocate(height_int(nlen))
-      ! allocate(fpc_int(nlen))
+      allocate(crown_int(nlen))
       ! allocate(fpc_grid_int(nlen))
 
 
@@ -315,7 +318,7 @@ contains
          dt1 = dt(:,ri) ! Pick up the pls functional attributes list
 
          height_int(p) = height_aux(ri)
-         ! fpc_int(p) = fpc_ind1(ri)
+         crown_int(p) = crown_aux(ri)
          ! fpc_grid_int(p) = fpc_grid1(ri)
 
          ! print*, 'FPC IND', fpc_int(p), 'FPC GRID', fpc_grid_int(p)
@@ -367,11 +370,11 @@ contains
             !    &'wood mass [abnormal]', cw2(p), 'root mass [abnormal]', rm2(p)
             ! endif
 
-         call foliage_projective (crown_aux(p), laia(p), awood_aux(p), fpc_ind1(p), fpc_grid1(p))
+         call foliage_projective (crown_int(p), laia(p), awood_aux(p), fpc_ind1(p), fpc_pls1(p))
          
-         ! if (awood_aux(p) .gt. 0.0D0) then
-         !    print*, 'FPC_ind', fpc_ind1(p), 'crown_area', crown_aux(p), 'FPC_grid', fpc_grid1(p), p
-         ! endif
+         if (awood_aux(p) .gt. 0.0D0) then
+            print*, 'FPC_ind', fpc_ind1(p), 'crown_area', crown_int(p), 'FPC_pls', fpc_pls1(p), p
+         endif
 
 
 
@@ -599,7 +602,7 @@ contains
       DEALLOCATE(idx_pdia)
       DEALLOCATE(ar_fix_hr)
       deallocate(height_int)
-      ! deallocate(fpc_int)
+      deallocate(crown_int)
       ! deallocate(fpc_grid_int)
 
       
