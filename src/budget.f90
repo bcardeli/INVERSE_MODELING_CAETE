@@ -171,7 +171,9 @@ contains
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
       real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2, fpc_ind1, fpc_pls1 !dens_aux
+      real(r_8), dimension(npls) :: kill_ocp, dens1_aux
       real(r_8) :: max_height
+      real(r_8) :: sum_fpc
       
       
       
@@ -217,6 +219,7 @@ contains
 
 
       nlen = sum(run)    ! New length for the arrays in the main loop
+
       allocate(lp(nlen))
       allocate(ocp_coeffs(nlen))
       allocate(idx_grasses(nlen))
@@ -308,7 +311,11 @@ contains
       !$OMP SCHEDULE(AUTO) &
       !$OMP DEFAULT(SHARED) &
       !$OMP PRIVATE(p, ri, carbon_in_storage, testcdef, sr, dt1, mr_sto, growth_stoc, ar_aux)
+
+      
       do p = 1,nlen
+
+         ! print*, 'survivers', p
 
          carbon_in_storage = 0.0D0
          testcdef = 0.0D0
@@ -321,6 +328,7 @@ contains
          crown_int(p) = crown_aux(ri)
          ! fpc_grid_int(p) = fpc_grid1(ri)
 
+         ! print*, 'height', height_int(p), p
          ! print*, 'FPC IND', fpc_int(p), 'FPC GRID', fpc_grid_int(p)
 
          call prod(dt1,catm, temp, soil_temp, p0, w, ipar, sla_aux(p),rh, emax&
@@ -330,6 +338,7 @@ contains
 
          evap(p) = penman(p0,temp,rh,available_energy(temp),rc2(p)) !Actual evapotranspiration (evap, mm/day)
          
+          
          ! print*, 'SLA_VAR', sla_aux(p), 'LAI=', laia(p), p
          ! print*, 'CLEAF=', cl1_pft(ri), 'CAWOOD=', ca1_pft(ri), p
 
@@ -365,16 +374,21 @@ contains
             &, lit_nut_content(:,p), limitation_status(:,p), npp2pay(p), uptk_strat(:, p), ar_aux,&
             & lm2(p), cw2(p), rm2(p))
 
-            ! if (height_int(p) .gt. 0.0D0) then
+            ! if (height_int(p) .gt. 0.0D0) thenso
             !    print*, 'leaf mass [abnormal]', lm2(p), &
             !    &'wood mass [abnormal]', cw2(p), 'root mass [abnormal]', rm2(p)
             ! endif
 
          call foliage_projective (crown_int(p), laia(p), awood_aux(p), fpc_ind1(p), fpc_pls1(p))
          
-         if (awood_aux(p) .gt. 0.0D0) then
-            print*, 'FPC_ind', fpc_ind1(p), 'crown_area', crown_int(p), 'FPC_pls', fpc_pls1(p), p
-         endif
+         ! if (awood_aux(p) .gt. 0.0D0) then
+         !    print*, 'FPC_PLS', fpc_pls1(p), p!, 'ACUMULADO FPC', sum_fpc, p
+         ! endif
+
+         
+         ! if (awood_aux(p) .gt. 0.0D0) then
+         !    print*, 'FPC_ind', fpc_ind1(p), 'crown_area', crown_int(p), 'FPC_pls', fpc_pls1(p), p
+         ! endif
 
 
 
@@ -440,6 +454,11 @@ contains
       enddo ! end pls_loop (p)
       !$OMP END PARALLEL DO
       epavg = emax !mm/day
+      
+      sum_fpc = sum(fpc_pls1)
+
+      call mort_occupation (fpc_pls1, awood_aux, sum_fpc, kill_ocp)
+      ! print*, 'nind kill [budget]', kill_ocp
 
       ! FILL OUTPUT DATA
       evavg = 0.0D0
