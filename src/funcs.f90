@@ -54,10 +54,11 @@ module photo
         water_ue               ,&
         leap                   ,&
         ttype                  ,&
-        pls_allometry          ,& ! (s) Plant life strategies allometry (height, diameter, crown area) functions
-        density_ind            ,& ! (s) logic to density number (randon - to the inicialization)
-        foliage_projective     ,&
-        mort_occupation           ! (s) logic to mortality relates to occupation/FPC
+        pls_allometry             ! (s) Plant life strategies allometry (height, diameter, crown area) functions
+      !   density_ind            ,& ! (s) logic to density number (randon - to the inicialization)
+      !   foliage_projective     ,&
+      !   mort_occupation        ,& ! (s) logic to mortality relates to occupation/FPC
+      !   mort_greff
 
 contains
 
@@ -1512,83 +1513,86 @@ contains
       
    end subroutine pls_allometry
 
-   subroutine density_ind (xmin, xmax, dens)
-      !Subroutine to calculate the initial density of individuals.
-      !This is called in caete.py
+   !! ============== VARIABLES TEST TO NEW ALLOCATION MODULE ==============
+   !                 All comment -- not working yet, just test
+
+   ! subroutine density_ind (xmin, xmax, dens)
+   !    !Subroutine to calculate the initial density of individuals.
+   !    !This is called in caete.py
       
-      use types
-      use global_par, only: npls
+   !    use types
+   !    use global_par, only: npls
 
-      !parameters
-      integer(i_4) :: p,t
-      integer(i_4), parameter :: ntl=365
-      integer(i_4), intent(in) :: xmin, xmax
-      real(r_8), dimension(npls), intent(out) :: dens
-      real(r_8), dimension(ntl) :: x !internal variable
+   !    !parameters
+   !    integer(i_4) :: p,t
+   !    integer(i_4), parameter :: ntl=365
+   !    integer(i_4), intent(in) :: xmin, xmax
+   !    real(r_8), dimension(npls), intent(out) :: dens
+   !    real(r_8), dimension(ntl) :: x !internal variable
 
-      x(:) = 0.
+   !    x(:) = 0.
       
-      call random_number(x)
-      do p = 1, npls
-         do t = 1, ntl
-            if (t .eq. 1) then
-               x(t) = xmin+(xmax-xmin)*x(t)
-               dens(p) = x(t)
-            endif
-         enddo
-      enddo
+   !    call random_number(x)
+   !    do p = 1, npls
+   !       do t = 1, ntl
+   !          if (t .eq. 1) then
+   !             x(t) = xmin+(xmax-xmin)*x(t)
+   !             dens(p) = x(t)
+   !          endif
+   !       enddo
+   !    enddo
 
-   end subroutine density_ind
+   ! end subroutine density_ind
 
-   subroutine foliage_projective (crown_area, lai, awood, fpc_ind, fpc_pls)
+   ! subroutine foliage_projective (crown_area, lai, awood, fpc_ind, fpc_pls)
 
-      use types 
-      use global_par
+   !    use types 
+   !    use global_par
 
-      ! integer(i_4),parameter :: npft = npls 
-      ! integer(i_4) :: p
-      real(r_8), intent(in)  :: crown_area, lai
-      real(r_8), intent(in)  ::  awood
-      real(r_8), intent(out) :: fpc_ind, fpc_pls 
-      real(r_8) :: lai1 
+   !    ! integer(i_4),parameter :: npft = npls 
+   !    ! integer(i_4) :: p
+   !    real(r_8), intent(in)  :: crown_area, lai
+   !    real(r_8), intent(in)  ::  awood
+   !    real(r_8), intent(out) :: fpc_ind, fpc_pls 
+   !    real(r_8) :: lai1 
 
-      ! ============================
-      lai1 = lai
-      !5 = numero arbitrario de individuos
-      ! ============================
+   !    ! ============================
+   !    lai1 = lai
+   !    !5 = numero arbitrario de individuos
+   !    ! ============================
 
-      !Calculation Foliage Projective Cover of average individual (FPC_ind), of the PLS (fpc_pls)
-      !in the grid cell
+   !    !Calculation Foliage Projective Cover of average individual (FPC_ind), of the PLS (fpc_pls)
+   !    !in the grid cell
 
-      fpc_ind = 0.0D0 !inicialize
-      fpc_pls = 0.0D0
+   !    fpc_ind = 0.0D0 !inicialize
+   !    fpc_pls = 0.0D0
 
-      if(awood .le. 0.0D0) then
-         fpc_ind = 0.0D0
-         fpc_pls = 0.0D0
-      else
-         fpc_ind = (1-(exp(-0.5*(lai1))))
-         fpc_pls = ((crown_area) * 5 * fpc_ind) 
-      endif
+   !    if(awood .le. 0.0D0) then
+   !       fpc_ind = 0.0D0
+   !       fpc_pls = 0.0D0
+   !    else
+   !       fpc_ind = (1-(exp(-0.5*(lai1))))
+   !       fpc_pls = ((crown_area) * 5 * fpc_ind) 
+   !    endif
 
-   end subroutine foliage_projective
+   ! end subroutine foliage_projective
 
-   subroutine mort_occupation (fpc_pls, awood,accu_fpc, nind_kill_fpc)
+   ! subroutine mort_occupation (fpc_pls, awood,accu_fpc, nind_kill_fpc)
 
-      use types 
-      use global_par
+   !    use types 
+   !    use global_par
 
-      integer(i_4),parameter :: npft = npls
-      integer(i_4) :: p
-      real(r_8), dimension(npft), intent(in)  :: fpc_pls !foliage projective of PLS 
-      real(r_8), dimension(npft), intent(in)  ::  awood
-      real(r_8), intent(in) :: accu_fpc!sum of all FPC_PLS
-      real(r_8), dimension(npft), intent(out) :: nind_kill_fpc
-      real(r_8), dimension(npft) :: red_fpc !red_fpc - quanto deve ser reduzido em area
-      real(r_8) :: exc_area !exc_area - excedente em área // 
-      real(r_8) :: fpc_max_tree
+   !    integer(i_4),parameter :: npft = npls
+   !    integer(i_4) :: p
+   !    real(r_8), dimension(npft), intent(in)  :: fpc_pls !foliage projective of PLS 
+   !    real(r_8), dimension(npft), intent(in)  ::  awood
+   !    real(r_8), intent(in) :: accu_fpc!sum of all FPC_PLS
+   !    real(r_8), dimension(npft), intent(out) :: nind_kill_fpc
+   !    real(r_8), dimension(npft) :: red_fpc !red_fpc - quanto deve ser reduzido em area
+   !    real(r_8) :: exc_area !exc_area - excedente em área // 
+   !    real(r_8) :: fpc_max_tree
 
-      fpc_max_tree = gc_area*0.95
+   !    fpc_max_tree = gc_area*0.95
 
       ! do p = 1, npft
          
@@ -1609,28 +1613,79 @@ contains
       ! endif
 
       
-      if (accu_fpc .gt. fpc_max_tree) then
-         !ULTRAPASSOU - Mortality relates FPC
+   !    if (accu_fpc .gt. fpc_max_tree) then
+   !       !ULTRAPASSOU - Mortality relates FPC
    
-         exc_area = accu_fpc - fpc_max_tree
+   !       exc_area = accu_fpc - fpc_max_tree
 
-         do p = 1, npft 
-            if (fpc_pls (p) .gt. 0.1D0) then !se a ocupação é maior q zero = PLS vivo.
-               red_fpc(p) = min(fpc_pls(p), exc_area*(fpc_pls(p)/accu_fpc))
-            else 
-               red_fpc(p) = 0.0D0
-            endif
+   !       do p = 1, npft 
+   !          if (fpc_pls (p) .gt. 0.1D0) then !se a ocupação é maior q zero = PLS vivo.
+   !             red_fpc(p) = min(fpc_pls(p), exc_area*(fpc_pls(p)/accu_fpc))
+   !          else 
+   !             red_fpc(p) = 0.0D0
+   !          endif
 
-            if (red_fpc(p).le.0.) then
-               nind_kill_fpc(p) = 0.0D0
-            else
-               nind_kill_fpc(p) = (5*red_fpc(p))/fpc_pls(p) !NIND_KILL.
-               !numero de ind. que vão morrer (ind/m2) devido ocupação maior que 95%
-            endif
-         enddo
-      endif
+   !          if (red_fpc(p).le.0.) then
+   !             nind_kill_fpc(p) = 0.0D0
+   !          else
+   !             nind_kill_fpc(p) = (5*red_fpc(p))/fpc_pls(p) !NIND_KILL.
+   !             !numero de ind. que vão morrer (ind/m2) devido ocupação maior que 95%
+   !          endif
+   !       enddo
+   !    endif
 
-   end subroutine mort_occupation
+   ! end subroutine mort_occupation
+
+   ! subroutine mort_greff (cl1, cw1, cfr1, cl2, cw2, cfr2, sla_var, dwood&
+   !    &, greffic,kill_total)
+
+   !    use types 
+   !    use global_par
+
+   !    real(r_8), intent(in) :: cl1, cw1, cfr1 !tissues carbon initial (to calculate delta)
+   !    real(r_8), intent(in) :: cl2, cw2, cfr2 !tissues carbon final (to calculate delta)
+   !    real(r_8), intent(in) :: sla_var, dwood !variant traits
+   !    ! real(r_8), dimension(npft), intent(in) :: kill_ocp       !mortality induced to occupation
+   !    real(r_8), intent(out) :: kill_total   !mortality total (greff + ocp)
+   !    real(r_8), intent(out) :: greffic !growth efficiency [internal variable]
+   !    real(r_8) :: greff_mort, mort_wd, delta !mortality of greff and woode density induced [internal]
+   !    real(r_8) :: nind_kill_greff !mortality induced to greff [internal variable]
+   !    ! real(r_8) :: delta !delta carbon increment
+   !    real(r_8) :: carbon_ini, carbon_end !sum of cl1 (...) and cl2 (...)
+
+   !    carbon_ini = (cl1 + cw1 + cfr1)/5
+   !    carbon_end = (cl2 + cw2 + cfr2)/5
+
+   !    delta = max(0.0D0, (carbon_end - carbon_ini))
+
+   !    greffic = (delta/(cl2/sla_var))
+
+   ! end subroutine 
+
+   ! subroutine alloc_functions (cl1, cw1, cfr1, height, sla_var, npp_aloc)
+
+   !    use types 
+   !    use global_par
+
+   !    real(r_8), intent(in) :: cl1, cw1, cfr1 !carbon pools initial
+   !    real(r_8), intent(in) :: height !height in meters of PLS
+   !    real(r_8), intent(in) :: sla_var !variant trait
+   !    real(r_8), intent(in) :: npp_aloc !NPP to alocate
+   !    real(r_8) :: nind = 3 !numero de individuos - PARA TESTE
+   !    real(r_8) :: lm, sm, hm, rm
+
+   !    !TREE ALLOCATION CONDITIONS
+      
+   !    ! (1) Transfor carbon pools kgC/m2 to gC/ind
+   !    lm = (cl1/nind)*1.D3 !OK
+   !    sm = ((cw1*0.05)/nind)*1.D3 !OK
+   !    hm = ((cw1*0.95)/nind)*1.D3 !OK
+   !    rm = (cfr1/nind)*1.D3 !OK
+
+   !    ! (2) Calculate the 
+      
+
+   ! end subroutine
 
 end module photo
 

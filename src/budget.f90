@@ -171,7 +171,7 @@ contains
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
       real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2, fpc_ind1, fpc_pls1 !dens_aux
-      real(r_8), dimension(npls) :: kill_ocp, dens1_aux
+      real(r_8), dimension(npls) :: kill_ocp, dens1_aux, kill_total, delta
       real(r_8) :: max_height
       real(r_8) :: sum_fpc
       
@@ -211,6 +211,7 @@ contains
 
       call pls_allometry(dt, ca1_pft,awood_aux, height_aux, diameter_aux,&
       &                   crown_aux)
+
 
       ! print*, 'CAWOOD (kg/m2)', ca1_pft
       ! print*, 'DIAMETER', diameter_aux
@@ -378,8 +379,14 @@ contains
             !    print*, 'leaf mass [abnormal]', lm2(p), &
             !    &'wood mass [abnormal]', cw2(p), 'root mass [abnormal]', rm2(p)
             ! endif
+         !print*, 'carbons pool output', 'leaf,', cl2(p), 'wood', ca2(p), 'root', cf2(p)
 
-         call foliage_projective (crown_int(p), laia(p), awood_aux(p), fpc_ind1(p), fpc_pls1(p))
+         ! call foliage_projective (crown_int(p), laia(p), awood_aux(p), fpc_ind1(p), fpc_pls1(p))
+         
+         ! call mort_greff (cl1_pft(ri),ca1_pft(ri),cf1_pft(ri),cl2(p),ca2(p),&
+         ! &                 cf2(p),sla_aux(p),dwood_aux(p),delta(p),kill_total(p))
+
+         !print*, 'greffic (growth efficiency)', delta(p) !, 'cleaf_increment', (cl2(p) - cl1_pft(ri))
          
          ! if (awood_aux(p) .gt. 0.0D0) then
          !    print*, 'FPC_PLS', fpc_pls1(p), p!, 'ACUMULADO FPC', sum_fpc, p
@@ -453,13 +460,14 @@ contains
 
       enddo ! end pls_loop (p)
       !$OMP END PARALLEL DO
-      epavg = emax !mm/day
-      
+
       sum_fpc = sum(fpc_pls1)
 
-      call mort_occupation (fpc_pls1, awood_aux, sum_fpc, kill_ocp)
-      ! print*, 'nind kill [budget]', kill_ocp
+      ! call mort_occupation (fpc_pls1, awood_aux, sum_fpc, kill_ocp)
+      ! ! print*, 'nind kill [budget]', kill_ocp
 
+      epavg = emax !mm/day
+      
       ! FILL OUTPUT DATA
       evavg = 0.0D0
       rcavg = 0.0D0
