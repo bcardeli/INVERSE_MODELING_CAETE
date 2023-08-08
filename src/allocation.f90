@@ -42,10 +42,10 @@ module alloc
 !c=====================================================================
 
    subroutine allocation(dt,npp,npp_costs,ts,wsoil,te,nmin, plab,on,&
-      & sop,op,scl1,sca1,scf1,storage,storage_out_alloc,height,scl2,sca2,scf2,&
+      & sop,op,scl1,sca1,scf1,storage,storage_out_alloc,scl2,sca2,scf2,&
       & leaf_litter,cwd,root_litter,nitrogen_uptake, phosphorus_uptake,&
       & litter_nutrient_content, limiting_nutrient, c_costs_of_uptake,&
-      & uptk_strategy, ctonfix, lm2, cw2, rm2)
+      & uptk_strategy, ctonfix)
 
 
       ! PARAMETERS
@@ -91,7 +91,6 @@ module alloc
       real(r_4),intent(in) :: nmin ! N in mineral N pool(g m-2) SOLUTION
       real(r_4),intent(in) :: plab ! P in labile pool (g m-2)   SOLUTION
       real(r_8),intent(in) :: on,sop,op ! Organic N, Sorbed P, Organic P
-      real(r_8),intent(in) :: height
       real(r_8),dimension(3),intent(in) :: storage ! Three element array- storage pool([C,N,P]) g m-2
       ! O
       real(r_8),dimension(3),intent(out) :: storage_out_alloc
@@ -157,8 +156,6 @@ module alloc
       real(r_8) :: root_p2c
       real(r_8) :: pdia
       real(r_8) :: amp
-      real(r_8) :: wooddens
-      real(r_8) :: sla_var
 
       real(r_8) :: avail_n
       real(r_8) :: avail_p
@@ -189,330 +186,10 @@ module alloc
       real(r_8) :: negative_one
       real(r_8) :: aux_on, aux_sop, aux_op
 
-      ! -------------------- NEW ALLOCATION VARIABLES ------------------------------
 
-      real(r_8),parameter :: pi   =  3.14159265 !TEM NO GLOBAL
-      real(r_8),parameter :: xacc =  0.1     !x-axis precision threshold for the allocation solution
-      real(r_8),parameter :: yacc =  1.e-10  !y-axis precision threshold for the allocation solution
-      integer(i_4),parameter :: ntl=365
-      integer(i_4),parameter :: nseg = 20 ! segment number to bisection loop
-      integer(i_4) :: i
-      integer, parameter :: stdout = output_unit
-      integer(i_4) :: xmin, xmax
-      real(r_8) :: allom1 = 100               !allometric constants TEM NO GLOBAL
-      real(r_8) :: allom2 = 36.0              !allometric constants TEM NO GLOBAL
-      real(r_8) :: allom3 = 0.22               !allometric constants TEM NO GLOBAL 
-      real(r_8) :: latosa = 6.000              !leaf to sapwood relation TEM NO GLOBAL
-      real(r_8) :: reinickerp = 1.6           !reinicker constants TEM NO GLOBAL
-      real(r_8) :: ltor = 0.77302587552347657 !leaf:root from Philip TEM NO GLOBAL
-
-      ! real(r_8),intent(in) :: nind ! m2 - input
-      real(r_8) :: nind = 3
-
-      !LOCAL VARIABLES
-      real(r_8) :: npp_ind        !gC/ind - individual total biomass increment this year 
-      real(r_8) :: lm2rm          !ratio of leafmass to fine rootmass
-      real(r_8) :: lminc_ind      !individual leafmass increment this year
-      real(r_8) :: rminc_ind      !individual fineroot mass increment this year
-      real(r_8) :: lminc_ind_min  !min leafmass increment to maintain current sapwood
-      real(r_8) :: rminc_ind_min  !min rootmass increment to support new leafmass
-      real(r_8) :: sap_xsa        !cross sectional area of sapwood  
-      real(r_8) :: sminc_ind      !individual sapmass increment this year
-
-      real(r_8) :: litter_ag_fast
-      real(r_8) :: litter_ag_slow
-      real(r_8) :: litter_bg
-
-      real(r_8) :: lm !leaf mass per individual
-      real(r_8) :: sm !sapwood mass per individual
-      real(r_8) :: hm !heartwood mass per individual
-      real(r_8) :: rm !root mass per individual
-      real(r_8), intent(out) :: lm2 !leaf mass pos allocation in kg/m² (OUTPUT)
-      real(r_8) :: sm2 !sapwood mass pos allocation in kg/m² (OUTPUT)
-      real(r_8) :: hm2 !heartwood mass pos allocation in kg/m² (OUTPUT)
-      real(r_8), intent(out):: rm2 !root mass pos allocation in kg/m² (OUTPUT)
-      real(r_8), intent(out) :: cw2 !wood mass por allocation in kg/m² (OUTPUT) - soma sap + heart
-
-
-      !BISECTION METHOD - VARIABLES
-      real(r_8) :: x1             !working vars in bisection
-      real(r_8) :: x2
-      real(r_8) :: rtbis
-      real(r_8) :: dx
-      real(r_8) :: xmid
-      real(r_8) :: root1, root2, root3
-      real(r_8) :: a1, a2, a3, pi1
-      real(r_8) :: sign
-      logical  :: normal
-
-      real(r_8) :: fx1
-      real(r_8) :: fmid
-
-      real(r_8) :: lm1     !allometric leafmass requirement (leafmass req'd to keep sapwood alive; gC ind-1)
-      
-      wooddens = dt(18)
-      sla_var = dt(19)
-
-      i = 0.0D0
-      npp_ind = 0.0D0
-      lm = 0.0D0
-      sm = 0.0D0
-      hm = 0.0D0
-      rm = 0.0D0
-      lminc_ind_min = 0.0D0
-      lm1 = 0.0D0
-      rminc_ind = 0.0D0     
-      lminc_ind_min = 0.0D0
-      rminc_ind_min = 0.0D0
-      sminc_ind = 0.0D0
-      litter_ag_fast = 0.0D0
-      litter_ag_slow = 0.0D0
-      litter_bg = 0.0D0
-      x1 = 0.0D0             
-      x2 = 0.0D0
-      rtbis = 0.0D0
-      dx = 0.0D0
-      xmid = 0.0D0
-      root1 = 0.0D0
-      root2 = 0.0D0
-      root3 = 0.0D0
-      fx1 = 0.0D0
-      fmid = 0.0D0
-      pi1 = 0.0D0
-      a1 = 0.0D0
-      a2 = 0.0D0
-      a3 = 0.0D0
-
-
-      !---------------------------------------------------------------------------
-
-      lm = (scl1/nind)*1.D3 !OK
-      sm = ((sca1*0.05)/nind)*1.D3 !OK
-      hm = ((sca1*0.95)/nind)*1.D3 !OK
-      rm = (scf1/nind)*1.D3 !OK
-        
-      npp_ind = ((real(npp,kind=r_8)*(1000.0D0))/nind) !OK
-
-      ! ! ====== TREE ALLOCATION ======
-
-      lm1 = (latosa*sm)/((wooddens*1.D6)*height*sla_var) !OK !allometric leaf mass requirement *****ATENÇÃO*****
-      ! !* wooddens in g/cm3 to g/m2
-
-      lminc_ind_min = lm1 - lm !valor entre o que tem nas folhas e minimo para satisfazer alometria
-     
-      ! !calculate minimum root production to support this leaf mass (i.e. lm_ind + lminc_ind_min)
-      ! !May be negative following a reduction in soil water limitation (increase in lm2rm) relative to last year.
-
-      rminc_ind_min = lm1 / (ltor - rm)      !eqn (30) ltor ser um range entre 0.1 e 0.7
-
-      if (rminc_ind_min .gt. 0. .and. lminc_ind_min .gt. 0. .and. &
-      &(rminc_ind_min + lminc_ind_min) .le. npp_ind) then
-
-         !Normal allocation (positive increment to all living C compartments)
-
-         normal = .true.
-
-         !Calculation of leaf mass increment (lminc_ind) that satisfies Eqn (22)
-         !Since this is normal allocation, we set the lower bound for the leafmass allocation (x1)
-         !to its allometric minimum, because it should be able to be fulfilled, i.e.:
-
-         !Start to find root procedure (relate to bisection method)
-
-         x1 = lminc_ind_min
-         x2 = (npp_ind-(lm/(ltor - rm)))/(1.+ 1./ltor)
-            
-         dx = x2-x1
-
-         if (dx < 0.01) then
-
-            ! there seems to be rare cases where lminc_ind_min (x1) is almost equal to x2. In this case,
-            ! assume that the leafmass increment is equal to the midpoint between the values and skip 
-            ! the root finding procedure
-
-            lminc_ind = x1 + 0.5 * dx !em gramas por individuo (ano)
-               
-         else 
-            
-            dx = dx/nseg
-
-            !! ===== FIND ROOT FUNCTION ===== [**must be a function**]
-
-            pi1 = pi/4
-            a1 = 2./allom3
-            a2 = 1. + a1
-            a3 = allom2**a1
-
-
-            root1 = a3*((sm+npp_ind-x1-((lm+x1)/ltor)+&
-                  &rm+hm)/wooddens)/pi1-((sm+npp_ind-x1-&
-                  &((lm+x1)/ltor)+rm)/((lm+x1)*sla_var*&
-                  &wooddens/latosa))**a2
-
-            ! ======================================================
-
-            !evaluate f(x1) = LHS of eqn (22) at x1
-
-            fx1 = root1
-
-            !Find approximate location of leftmost root on the interval (x1,x2).
-            !Subdivide (x1,x2) into nseg equal segments seeking change in sign of f(xmid) relative to f(x1).
-
-            fmid = fx1
-            xmid = x1
-
-            i = 1
-
-            do
-
-               xmid = xmid + dx
-
-               root2 = a3*((sm+npp_ind-xmid-((lm+xmid)/ltor)+&
-               &rm+hm)/wooddens)/pi1-((sm+npp_ind-xmid-&
-               &((lm+xmid)/ltor)+rm)/((lm+xmid)*sla_var*&
-               &wooddens/latosa))**a2
-
-               fmid = root2
-
-               if ((fmid*fx1) .le. 0. .or. xmid .ge. x2) then
-                  exit  !sign has changed or we are over the upper bound
-               endif
-
-               if (i > 20) write(stdout,*)'first alloc loop flag',i,fmid*fx1,&
-                  &xmid,x1,x2,dx,npp_ind
-
-               if (i > 50) stop 'Too many iterations allocmod'
-
-               i = i + 1
-
-            end do
-
-            !the interval that brackets zero in f(x) becomes the new bounds for the root search
-
-            x1 = xmid - dx
-            x2 = xmid
-
-            !Apply bisection method to find root on the new interval (x1,x2)
-
-            fx1 = root1
-
-            if (fx1 .ge. 0.) then
-               sign = -1.
-            else
-               sign =  1.
-            end if
-
-            rtbis = x1
-            dx   = x2 - x1
-
-            !Bisection loop: search iterates on value of xmid until xmid lies within xacc of the root,
-            !i.e. until |xmid-x| < xacc where f(x) = 0. the final value of xmid with be the leafmass increment
-
-            i = 1
-
-            do 
-
-               dx   = 0.5 * dx
-               xmid = rtbis + dx
-
-               !calculate fmid = f(xmid) [eqn (22)]
-
-               root3 = a3*((sm+npp_ind-xmid-((lm+xmid)/ltor)+&
-               &rm+hm)/wooddens)/pi1-((sm+npp_ind-xmid-&
-               &((lm+xmid)/ltor)+rm)/((lm+xmid)*sla_var*wooddens/latosa))**a2
-
-               fmid = root3
-
-               if (fmid * sign .le. 0.) then 
-                  rtbis = xmid
-               endif
-
-               if (dx .lt. xacc .or. abs(fmid) .le. yacc) then
-                  exit
-               endif
-
-               if (i > 20) write(stdout,*)'second alloc loop flag',i,dx,abs(fmid)
-               if (i > 50) stop 'Too many iterations allocmod'
-
-               i = i + 1
-
-            end do
-
-            !Now rtbis contains numerical solution for lminc_ind given eqn (22)
-
-            lminc_ind = rtbis
-
-         endif
-
-         !Calculate increments in other compartments using allometry relationships
-
-         rminc_ind = (lm+lminc_ind)/ltor-rm       !eqn (9) - root increment individual
-         sminc_ind = npp_ind - rminc_ind - lminc_ind  !eqn (1) - sapwood increment individual
-
-      else 
-
-         !Abnormal allocation: reduction in some C compartment(s) to satisfy allometry
-            
-         normal = .false.
-
-         !Attempt to distribute this year's production among leaves and roots only
-
-         lminc_ind = (npp_ind-lm/ltor+rm)/((1. + 1.)/ltor)  !eqn (33)
-
-         if (lminc_ind > 0.) then
-
-            !Positive allocation to leafmass
-
-            rminc_ind = npp_ind - lminc_ind  !eqn (31)
-            
-            !Add killed roots (if any) to below-ground litter
-
-            if (rminc_ind < 0.) then
-
-               lminc_ind = npp_ind
-               rminc_ind = (lm + lminc_ind) / ltor - rm
-
-               litter_bg = litter_bg + abs(rminc_ind) * nind
-
-            end if
-            
-            i = 1
-
-         else
-
-            !Negative allocation to leaf mass
-
-            rminc_ind = npp_ind
-            lminc_ind = (rm + rminc_ind * ltor) - lm  !from eqn (9) in LPJmL-Fire
-
-            !Add killed leaves to litter
-
-            litter_ag_fast = litter_ag_fast + abs(lminc_ind) * nind
-            
-            i = 2
-
-         endif
-
-         !Calculate sminc_ind (MUST BE NEGATIVE)
-      
-         sminc_ind = (lm + lminc_ind) * sla_var /&
-         & latosa * wooddens * height - sm  !eqn (35)
-
-         !Convert killed sapwood to heartwood
-
-         hm = hm + abs(sminc_ind)
-
-      endif !normal/abnormal allocation
-
-      !Increment C compartments - OUTPUT FINAL (kgC/m²)
-
-      lm2 = ((lm + lminc_ind)*nind)/1.D3
-      rm2 = ((rm + rminc_ind)*nind)/1.D3 
-      sm2 = ((sm + sminc_ind)*nind)/1.D3
-      hm2 = (hm*nind)/1.D3
-      cw2 = sm2 + hm2
-
-      
-      !---------------------------- END OF ALLOCATION -----------------------------
+      ! litter_ag_fast = 0.0D0
+      ! litter_ag_slow = 0.0D0
+      ! litter_bg = 0.0D0
 
 
       ! initialize ALL outputs
@@ -1261,14 +938,6 @@ module alloc
       c_costs_of_uptake = active_nupt_cost + active_pupt_cost &
       &                   + n_cost_resorpt + p_cost_resorpt + negative_one
       ! END OF CALCULATIONS
-
-      !=========================== NEW ALLOCATION LOGIC ==========================
-
-      
-      ! --------------- FINAL VARIABLES DECLARATION -----------------------
-
-
-  
 
 
    contains

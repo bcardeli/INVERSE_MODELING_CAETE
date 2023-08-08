@@ -170,10 +170,9 @@ contains
       real(r_8), dimension(3,npls) :: sto_budg
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
-      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux, lm2, cw2, rm2, fpc_ind1, fpc_pls1 !dens_aux
-      real(r_8), dimension(npls) :: kill_ocp, dens1_aux, kill_total, delta
+      real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux
+      real(r_8), dimension(npls) :: co2_abs_se
       real(r_8) :: max_height
-      real(r_8) :: sum_fpc
       
       
       
@@ -370,33 +369,15 @@ contains
 
          call allocation (dt1,nppa(p),uptk_costs(ri), soil_temp, w, tra(p)&
             &, mineral_n,labile_p, on, sop, op, cl1_pft(ri),ca1_pft(ri)&
-            &, cf1_pft(ri),storage_out_bdgt(:,p),day_storage(:,p), height_int(p),cl2(p),ca2(p)&
+            &, cf1_pft(ri),storage_out_bdgt(:,p),day_storage(:,p),cl2(p),ca2(p)&
             &, cf2(p),litter_l(p),cwd(p), litter_fr(p),nupt(:,p),pupt(:,p)&
-            &, lit_nut_content(:,p), limitation_status(:,p), npp2pay(p), uptk_strat(:, p), ar_aux,&
-            & lm2(p), cw2(p), rm2(p))
+            &, lit_nut_content(:,p), limitation_status(:,p), npp2pay(p), uptk_strat(:, p), ar_aux)
 
-            ! if (height_int(p) .gt. 0.0D0) thenso
-            !    print*, 'leaf mass [abnormal]', lm2(p), &
-            !    &'wood mass [abnormal]', cw2(p), 'root mass [abnormal]', rm2(p)
-            ! endif
-         !print*, 'carbons pool output', 'leaf,', cl2(p), 'wood', ca2(p), 'root', cf2(p)
 
-         ! call foliage_projective (crown_int(p), laia(p), awood_aux(p), fpc_ind1(p), fpc_pls1(p))
-         
-         ! call mort_greff (cl1_pft(ri),ca1_pft(ri),cf1_pft(ri),cl2(p),ca2(p),&
-         ! &                 cf2(p),sla_aux(p),dwood_aux(p),delta(p),kill_total(p))
+         !       CO2 absortion (ES flow indicators (Burkhard et al., 2014))
+         !      =============================================================
 
-         !print*, 'greffic (growth efficiency)', delta(p) !, 'cleaf_increment', (cl2(p) - cl1_pft(ri))
-         
-         ! if (awood_aux(p) .gt. 0.0D0) then
-         !    print*, 'FPC_PLS', fpc_pls1(p), p!, 'ACUMULADO FPC', sum_fpc, p
-         ! endif
-
-         
-         ! if (awood_aux(p) .gt. 0.0D0) then
-         !    print*, 'FPC_ind', fpc_ind1(p), 'crown_area', crown_int(p), 'FPC_pls', fpc_pls1(p), p
-         ! endif
-
+         call se_module(ca2(p), cl2(p), cf2(p), awood_aux(p), co2_abs_se(p))
 
 
          ! Estimate growth of storage C pool
@@ -460,11 +441,6 @@ contains
 
       enddo ! end pls_loop (p)
       !$OMP END PARALLEL DO
-
-      sum_fpc = sum(fpc_pls1)
-
-      ! call mort_occupation (fpc_pls1, awood_aux, sum_fpc, kill_ocp)
-      ! ! print*, 'nind kill [budget]', kill_ocp
 
       epavg = emax !mm/day
       

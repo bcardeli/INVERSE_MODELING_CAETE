@@ -883,7 +883,6 @@ class grd:
                                                 self.time_unit, self.calendar).year
                         co2 = find_co2(year0)
                         next_year = (find_co2(year0 + 1) - co2) / days
-
                     elif loop == 1 and count_days < days:
                         year0 = start.year
                         next_year = (find_co2(year0 + 1) - co2) / \

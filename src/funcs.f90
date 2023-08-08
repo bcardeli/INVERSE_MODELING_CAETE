@@ -54,7 +54,8 @@ module photo
         water_ue               ,&
         leap                   ,&
         ttype                  ,&
-        pls_allometry             ! (s) Plant life strategies allometry (height, diameter, crown area) functions
+        pls_allometry          ,& ! (s) Plant life strategies allometry (height, diameter, crown area) functions
+        se_module                 ! (s) Subroutine to calculate SE (regulation)      
       !   density_ind            ,& ! (s) logic to density number (randon - to the inicialization)
       !   foliage_projective     ,&
       !   mort_occupation        ,& ! (s) logic to mortality relates to occupation/FPC
@@ -679,6 +680,7 @@ contains
 
       nbio2 = nbio !nrubisco(leaf_turnover, nbio)
       pbio2 = pbio !nrubisco(leaf_turnover, pbio)
+      aux_ipar = 0.0D0 !inicialize
 
       ! if (nbio2 .lt. 0.01D0) nbio2 = 0.01D0
       ! if (pbio2 .lt. 0.01D0) pbio2 = 0.01D0
@@ -832,14 +834,14 @@ contains
                if (height1.le.max_height.and.height1.gt.layer(n-1)%layer_height) then 
                   llight = ipar
                   aux_ipar = ipar
-                  ! print*, n, 'LL TOP=', llight, 'aux_ipar', aux_ipar,'ipar', ipar
+                  print*, n, 'LL TOP=', llight, 'aux_ipar', aux_ipar,'ipar', ipar
                endif
             else
                layer(n)%layer_id = layer(n+1)%layer_id-1  
                if (height1.le.layer(n)%layer_height.and.height1.gt.layer(n-1)%layer_height) then
                   llight = (layer(n)%lavai/ipar)
                   aux_ipar = ipar - (ipar*llight) !limitation in % of IPAR total. 
-                  ! print*, n, 'LL ABOVE % =', llight, 'aux_ipar', aux_ipar, 'ipar', ipar
+                  print*, n, 'LL ABOVE % =', llight, 'aux_ipar', aux_ipar, 'ipar', ipar
                endif
             endif 
          endif  
@@ -1513,6 +1515,39 @@ contains
       
    end subroutine pls_allometry
 
+   subroutine se_module (cawood, cleaf, cfroot, awood, co2_abs)
+
+      use types 
+      use global_par
+
+      real(r_8), intent(in) :: cawood, cleaf, cfroot
+      real(r_8), intent(in) :: awood
+      ! real(r_8),intent(in) :: prec
+      ! real(r_8),intent(in) :: runoff 
+      ! real(r_8),intent(in) :: evap
+      real(r_8) :: biomass
+      real(r_8) :: co2_abs
+      ! real(r_8) :: water_ret
+
+      !CO2_abs - Quantidade de CO2 absorvido e estocado 
+      !nos tecidos vegetais (caule, folha e raízes). 
+      !SE de regulação climática - Service flow indicators (Burkhard et al., 2014)
+      !Unidade: tCO2/ha
+      !*3,67 -> equivale ao peso molecular do CO2 determinado pela proporção de CO2 para C;
+      !Para cada tonelada de C fixado na fitomassa, corresponde o equivalente a uma mitigação 
+      !de 3,67 t de CO2 da atmosfera (Yu, 2004; Nishi et al., 2005).
+
+      if (awood .le. 0.0D0) then
+         biomass = ((cleaf + cfroot)*10) !total biomass grass (t/ha)
+      else 
+         biomass = ((cawood + cleaf + cfroot)*10) !biomassa total em t/ha
+      endif 
+
+      co2_abs = biomass*3.67 !CO2 absorvido em t/ha
+
+
+   end subroutine se_module
+
    !! ============== VARIABLES TEST TO NEW ALLOCATION MODULE ==============
    !                 All comment -- not working yet, just test
 
@@ -1835,21 +1870,21 @@ end function wtt
     es = wtt (temp)
     delta_e = es*(1. - ur)    !mbar
 
-    if ((delta_e.ge.(1./h5)-0.5).or.(rc2.ge.rcmax)) evap = 0.
-    if ((delta_e.lt.(1./h5)-0.5).or.(rc2.lt.rcmax)) then
-       !     Gama and gama2
-       !     --------------
-       gama  = spre*(1004.)/(2.45e6*0.622)
-       gama2 = gama*(ra + rc2)/ra
+   if ((delta_e.ge.(1./h5)-0.5).or.(rc2.ge.rcmax)) evap = 0.
+   if ((delta_e.lt.(1./h5)-0.5).or.(rc2.lt.rcmax)) then
+      !     Gama and gama2
+      !     --------------
+      gama  = spre*(1004.)/(2.45e6*0.622)
+      gama2 = gama*(ra + rc2)/ra
 
-       !     Real evapotranspiration
-       !     -----------------------
-       ! LH
-       evap = (delta* rn + (1.20*1004./ra)*delta_e)/(delta+gama2) !W/m2
-       ! H2O MASS
-       evap = evap*(86400./2.45e6) !mm/day
-       evap = amax1(evap,0.)  !Eliminates condensation
-    endif
+      !     Real evapotranspiration
+      !     -----------------------
+      ! LH
+      evap = (delta* rn + (1.20*1004./ra)*delta_e)/(delta+gama2) !W/m2
+      ! H2O MASS
+      evap = evap*(86400./2.45e6) !mm/day
+      evap = amax1(evap,0.)  !Eliminates condensation
+   endif
   end function penman
 
   !=================================================================
