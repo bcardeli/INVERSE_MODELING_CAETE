@@ -31,7 +31,7 @@ contains
         &, laiavg, rcavg, f5avg, rmavg, rgavg, cleafavg_pft, cawoodavg_pft&
         &, cfrootavg_pft, storage_out_bdgt_1, ocpavg, wueavg, cueavg, c_defavg&
         &, vcmax_1, specific_la_1, nupt_1, pupt_1, litter_l_1, cwd_1, litter_fr_1, npp2pay_1, lit_nut_content_1&
-        &, delta_cveg_1, limitation_status_1, uptk_strat_1, cp, c_cost_cwm)
+        &, delta_cveg_1,co2_abs_se_1, limitation_status_1, uptk_strat_1, cp, c_cost_cwm)
 
 
       use types
@@ -88,6 +88,7 @@ contains
       real(r_8),intent(out) :: litter_l_1       ! g m-2
       real(r_8),intent(out) :: cwd_1            ! g m-2
       real(r_8),intent(out) :: litter_fr_1      ! g m-2
+      real(r_8),intent(out) :: co2_abs_se_1
       real(r_8),dimension(2),intent(out) :: nupt_1         ! g m-2 (1) from Soluble (2) from organic
       real(r_8),dimension(3),intent(out) :: pupt_1         ! g m-2
       real(r_8),dimension(6),intent(out) :: lit_nut_content_1 ! g(Nutrient)m-2 ! Lit_nut_content variables         [(lln),(rln),(cwdn),(llp),(rl),(cwdp)]
@@ -104,6 +105,7 @@ contains
       real(r_8),dimension(npls),intent(out) ::  npp2pay_1 ! C costs of N/P uptake
       real(r_8),dimension(4),intent(out) :: cp ! Aux cp(1:3) CVEG C POOLS cp(4) Auxiliary to HR
       real(r_8),intent(out) :: c_cost_cwm
+      
       !     -----------------------Internal Variables------------------------
       integer(i_4) :: p, counter, nlen, ri, i, j
       real(r_8),dimension(ntraits) :: dt1 ! Store one PLS attributes array (1D)
@@ -164,6 +166,7 @@ contains
       INTEGER(i_4), dimension(:), allocatable :: lp ! index of living PLSs/living grasses
       real(r_8),dimension(:), allocatable :: height_int
       real(r_8),dimension(:), allocatable :: crown_int
+      real(r_8),dimension(:), allocatable :: co2_abs_se
       ! real(r_8),dimension(:), allocatable :: fpc_grid_int
 
       real(r_8), dimension(npls) :: awood_aux, nleaf, nwood, nroot, uptk_costs, pdia_aux, dwood_aux, sla_aux
@@ -171,7 +174,7 @@ contains
       real(r_8) :: soil_sat, ar_aux
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
       real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux
-      real(r_8), dimension(npls) :: co2_abs_se
+      real(r_8), dimension(npls) :: delta_biomass
       real(r_8) :: max_height
       
       
@@ -285,8 +288,7 @@ contains
       allocate(day_storage(3,nlen))
       allocate(height_int(nlen))
       allocate(crown_int(nlen))
-      ! allocate(fpc_grid_int(nlen))
-
+      allocate(co2_abs_se(nlen))
 
       !     Maximum evapotranspiration   (emax)
       !     =================================
@@ -328,8 +330,6 @@ contains
          crown_int(p) = crown_aux(ri)
          ! fpc_grid_int(p) = fpc_grid1(ri)
 
-         ! print*, 'height', height_int(p), p
-         ! print*, 'FPC IND', fpc_int(p), 'FPC GRID', fpc_grid_int(p)
 
          call prod(dt1,catm, temp, soil_temp, p0, w, ipar, sla_aux(p),rh, emax&
                &, cl1_pft(ri), ca1_pft(ri), cf1_pft(ri), nleaf(ri), nwood(ri), nroot(ri)&
@@ -338,9 +338,6 @@ contains
 
          evap(p) = penman(p0,temp,rh,available_energy(temp),rc2(p)) !Actual evapotranspiration (evap, mm/day)
          
-          
-         ! print*, 'SLA_VAR', sla_aux(p), 'LAI=', laia(p), p
-         ! print*, 'CLEAF=', cl1_pft(ri), 'CAWOOD=', ca1_pft(ri), p
 
          ! Check if the carbon deficit can be compensated by stored carbon
          carbon_in_storage = sto_budg(1, ri)
@@ -377,8 +374,20 @@ contains
          !       CO2 absortion (ES flow indicators (Burkhard et al., 2014))
          !      =============================================================
 
-         call se_module(ca2(p), cl2(p), cf2(p), awood_aux(p), co2_abs_se(p))
+         call se_module(cl2(p), ca2(p), cf2(p), awood_aux(p), co2_abs_se(p))
+         
+         ! if (awood_aux(p) .eq. 0.0D0) then
+         !    print*, 'GRAMINEA' 
+         !    print*, 'CO2_ABSORVIDA', co2_abs_se(p)
 
+         ! else
+         !    print*, '----- WOOD -------'
+         !    print*, 'co2_absorbed', co2_abs_se(p), p 
+         !    print*, 'CLEAF', cl2(p) 
+         !    print*, 'CAULE', ca2(p)
+         !    print*, 'FINE_ROOT', cf2(p)
+         !    print*, '-------------------'
+         ! endif
 
          ! Estimate growth of storage C pool
          ar_fix_hr(p) = ar_aux
@@ -411,6 +420,12 @@ contains
             delta_cveg(2,p) = ca2(p) - ca1_pft(ri)
          endif
          delta_cveg(3,p) = cf2(p) - cf1_pft(ri)
+
+         if(dt1(4) .lt. 0.0D0) then
+            delta_biomass(p) = delta_cveg(1,p) + delta_cveg(3,p)
+         else 
+            delta_biomass(p) = delta_cveg(1,p) + delta_cveg(2,p) + delta_cveg(3,p)
+         endif
 
          ! Mass Balance
 
@@ -462,9 +477,11 @@ contains
       c_defavg = 0.0D0
       vcmax_1 = 0.0D0
       specific_la_1 = 0.0D0
+      co2_abs_se_1 = 0.0D0
       lit_nut_content_1(:) = 0.0D0
       nupt_1(:) = 0.0D0
       pupt_1(:) = 0.0D0
+      
 
       cleafavg_pft(:) = 0.0D0
       cawoodavg_pft(:) = 0.0D0
@@ -474,6 +491,7 @@ contains
       limitation_status_1(:,:) = 0
       uptk_strat_1(:,:) = 0
       npp2pay_1(:) = 0.0
+      
 
       ! CALCULATE CWM FOR ECOSYSTEM PROCESSES
 
@@ -500,6 +518,7 @@ contains
       cwd_1 = sum(cwd * ocp_coeffs, mask= .not. isnan(cwd))
       litter_fr_1 = sum(litter_fr * ocp_coeffs, mask= .not. isnan(litter_fr))
       c_cost_cwm = sum(npp2pay * ocp_coeffs, mask= .not. isnan(npp2pay))
+      co2_abs_se_1 = sum(co2_abs_se * ocp_coeffs, mask= .not. isnan(co2_abs_se))
 
       cp(1) = sum(cl1_int * ocp_coeffs, mask= .not. isnan(cl1_int))
       cp(2) = sum(ca1_int * (ocp_coeffs * idx_grasses), mask= .not. isnan(ca1_int))
@@ -562,8 +581,8 @@ contains
          limitation_status_1(:,ri) = limitation_status(:,p)
          uptk_strat_1(:,ri) = uptk_strat(:,p)
          npp2pay_1(ri) = npp2pay(p)
-      enddo
 
+      enddo
 
       deallocate(lp)
       deallocate(evap)
@@ -606,7 +625,7 @@ contains
       DEALLOCATE(ar_fix_hr)
       deallocate(height_int)
       deallocate(crown_int)
-      ! deallocate(fpc_grid_int)
+      deallocate(co2_abs_se)
 
       
    end subroutine daily_budget

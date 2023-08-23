@@ -834,14 +834,14 @@ contains
                if (height1.le.max_height.and.height1.gt.layer(n-1)%layer_height) then 
                   llight = ipar
                   aux_ipar = ipar
-                  print*, n, 'LL TOP=', llight, 'aux_ipar', aux_ipar,'ipar', ipar
+                  !print*, n, 'LL TOP=', llight, 'aux_ipar', aux_ipar,'ipar', ipar
                endif
             else
                layer(n)%layer_id = layer(n+1)%layer_id-1  
                if (height1.le.layer(n)%layer_height.and.height1.gt.layer(n-1)%layer_height) then
                   llight = (layer(n)%lavai/ipar)
                   aux_ipar = ipar - (ipar*llight) !limitation in % of IPAR total. 
-                  print*, n, 'LL ABOVE % =', llight, 'aux_ipar', aux_ipar, 'ipar', ipar
+                  !print*, n, 'LL ABOVE % =', llight, 'aux_ipar', aux_ipar, 'ipar', ipar
                endif
             endif 
          endif  
@@ -1515,35 +1515,31 @@ contains
       
    end subroutine pls_allometry
 
-   subroutine se_module (cawood, cleaf, cfroot, awood, co2_abs)
+   subroutine se_module (cleaf, cwood, cfroot, awood, co2_abs)
 
       use types 
       use global_par
 
-      real(r_8), intent(in) :: cawood, cleaf, cfroot
       real(r_8), intent(in) :: awood
-      ! real(r_8),intent(in) :: prec
-      ! real(r_8),intent(in) :: runoff 
-      ! real(r_8),intent(in) :: evap
-      real(r_8) :: biomass
+      real(r_8), intent(in) :: cleaf, cwood, cfroot
+      real(r_8) :: biomass !internal variable
       real(r_8) :: co2_abs
-      ! real(r_8) :: water_ret
 
       !CO2_abs - Quantidade de CO2 absorvido e estocado 
       !nos tecidos vegetais (caule, folha e raízes). 
       !SE de regulação climática - Service flow indicators (Burkhard et al., 2014)
-      !Unidade: tCO2/ha
+      !Unidade: tCO2/ha/ano
       !*3,67 -> equivale ao peso molecular do CO2 determinado pela proporção de CO2 para C;
       !Para cada tonelada de C fixado na fitomassa, corresponde o equivalente a uma mitigação 
       !de 3,67 t de CO2 da atmosfera (Yu, 2004; Nishi et al., 2005).
 
       if (awood .le. 0.0D0) then
-         biomass = ((cleaf + cfroot)*10) !total biomass grass (t/ha)
-      else 
-         biomass = ((cawood + cleaf + cfroot)*10) !biomassa total em t/ha
-      endif 
-
-      co2_abs = biomass*3.67 !CO2 absorvido em t/ha
+         biomass = (cleaf + cfroot)*10 !transfor kgC/m² -> t/ha
+         co2_abs = (biomass*3.67) !CO2 absorvido em t/ha
+      else
+         biomass = (cleaf + cwood + cfroot)*10 !transfor kgC/m² -> t/ha
+         co2_abs = (biomass*3.67) !CO2 absorvido em t/ha
+      endif
 
 
    end subroutine se_module

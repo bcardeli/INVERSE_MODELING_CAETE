@@ -71,6 +71,7 @@ G3_1d = ["rcm",
          "cfroot",
          "litter_l",
          "cwd",
+         "co2_abs",
          "litter_fr",
          "c_cost"]
 
@@ -164,17 +165,18 @@ class run_g3(tb.IsDescription):
     cfroot = tb.Float32Col(dflt=0.0, pos=11)
     litter_l = tb.Float32Col(dflt=0.0, pos=12)
     cwd = tb.Float32Col(dflt=0.0, pos=13)
-    litter_fr = tb.Float32Col(dflt=0.0, pos=14)
-    lnc1 = tb.Float32Col(dflt=0.0, pos=15)
-    lnc2 = tb.Float32Col(dflt=0.0, pos=16)
-    lnc3 = tb.Float32Col(dflt=0.0, pos=17)
-    lnc4 = tb.Float32Col(dflt=0.0, pos=18)
-    lnc5 = tb.Float32Col(dflt=0.0, pos=19)
-    lnc6 = tb.Float32Col(dflt=0.0, pos=20)
-    sto1 = tb.Float32Col(dflt=0.0, pos=21)
-    sto2 = tb.Float32Col(dflt=0.0, pos=22)
-    sto3 = tb.Float32Col(dflt=0.0, pos=23)
-    c_cost = tb.Float32Col(dflt=0.0, pos=24)
+    co2_abs = tb.Float32Col(dflt=0.0, pos=14)
+    litter_fr = tb.Float32Col(dflt=0.0, pos=15)
+    lnc1 = tb.Float32Col(dflt=0.0, pos=16)
+    lnc2 = tb.Float32Col(dflt=0.0, pos=17)
+    lnc3 = tb.Float32Col(dflt=0.0, pos=18)
+    lnc4 = tb.Float32Col(dflt=0.0, pos=19)
+    lnc5 = tb.Float32Col(dflt=0.0, pos=20)
+    lnc6 = tb.Float32Col(dflt=0.0, pos=21)
+    sto1 = tb.Float32Col(dflt=0.0, pos=22)
+    sto2 = tb.Float32Col(dflt=0.0, pos=23)
+    sto3 = tb.Float32Col(dflt=0.0, pos=24)
+    c_cost = tb.Float32Col(dflt=0.0, pos=25)
 
 
 class PLS_temp(tb.IsDescription):

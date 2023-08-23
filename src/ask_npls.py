@@ -104,14 +104,14 @@ module allometry_par
    implicit none
 
    real(r_8), public, parameter ::       &
-         k_allom1 = 100.0     ,&          !allometric constant (Table 3; Sitch et al., 2003)
-         k_allom2 = 36.0      ,&
-         k_allom3 = 0.22      ,&
-         klatosa = 6000.0     ,&   
+         k_allom1 = 250.0     ,&          !allometric constant default
+         k_allom2 = 60.0      ,&          !!(Table 4.1; Seiler et al., 2014)
+         k_allom3 = 0.67      ,&
+         klatosa = 8000.0     ,&   
          ltor = 0.77302587552347657 ,&    !ratio between increment in leaf and root
          tol = 0.0000001      ,&
          pi = 3.1415926536    ,&
-         krp = 1.6            ,&            !allometric constant (Table 3; Sitch et al., 2003)
+         krp = 1.6            ,&            !allometric constant default (Table 4.1; Seiler et al., 2014)
          turnover_rate_sapwood = 0.05  ,&       !fix value for allometry/allocation calculus (Table1, Sitch et al., 2003)
          turnover_rate = 0.5                !fix value for leaf and root turnover (Table 1, Sitch et al., 2003)
 end module allometry_par"""

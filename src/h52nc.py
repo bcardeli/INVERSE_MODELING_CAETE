@@ -161,6 +161,7 @@ def get_var_metadata(var):
               'cfroot': ['C in fine roots', 'kg m-2', 'cfroot'],
               'cleaf': ['C in leaves', 'kg m-2', 'cleaf'],
               'cmass': ['total Carbon -Biomass', 'kg m-2', 'cmass'],
+              'co2_abs': ['absorbed CO2 - Service flow indicators', 't/ha/y', 'co2_abs'],
               'leaf_nolim': ['no lim. in leaf growth', 'Time fraction', 'leaf_nolim'],
               'leaf_lim_n': ['N lim. growth L', 'Time fraction', 'leaf_lim_n'],
               'leaf_lim_p': ['P lim. growth L', 'Time fraction', 'leaf_lim_p'],
@@ -686,7 +687,7 @@ def create_ncG3(table, interval, nc_out):
         print(f"\n\nSaving outputs in {nc_out.resolve()}")
 
     vars = ["rcm", "runom", "evapm", "wsoil", "cleaf", "cawood",
-            "cfroot", "litter_l", "cwd", "litter_fr", "litter_n",
+            "cfroot", "litter_l", "cwd", "co2_abs", "litter_fr", "litter_n",
             "litter_p", "sto_c", "sto_n", "sto_p", "c_cost"]
 
     dates = time_queries(interval)
@@ -715,6 +716,7 @@ def create_ncG3(table, interval, nc_out):
     cfroot = np.zeros(shape=(dm1, 61, 71), dtype=np.float32) - 9999.0
     litter_l = np.zeros(shape=(dm1, 61, 71), dtype=np.float32) - 9999.0
     cwd = np.zeros(shape=(dm1, 61, 71), dtype=np.float32) - 9999.0
+    co2_abs = np.zeros(shape=(dm1, 61, 71), dtype=np.float32) - 9999.0
     litter_fr = np.zeros(shape=(dm1, 61, 71), dtype=np.float32) - 9999.0
     lnc1 = np.zeros(shape=(dm1, 61, 71), dtype=np.float32) - 9999.0
     lnc2 = np.zeros(shape=(dm1, 61, 71), dtype=np.float32) - 9999.0
@@ -752,6 +754,8 @@ def create_ncG3(table, interval, nc_out):
         litter_l[i, :, :] = assemble_layer(
             out['grid_y'], out['grid_x'], out['litter_l'])
         cwd[i, :, :] = assemble_layer(out['grid_y'], out['grid_x'], out['cwd'])
+        co2_abs[i, :, :] = assemble_layer(
+            out['grid_y'], out['grid_x'], out['co2_abs'])
         litter_fr[i, :, :] = assemble_layer(
             out['grid_y'], out['grid_x'], out['litter_fr'])
         lnc1[i, :, :] = assemble_layer(
@@ -787,11 +791,11 @@ def create_ncG3(table, interval, nc_out):
     np.place(wsoil, mask=swsoil == -9999.0, vals=NO_DATA)
 
     vars = ["rcm", "runom", "evapm", "wsoil", "cleaf", "cawood",
-            "cfroot", "litter_l", "cwd", "litter_fr", "litter_n",
+            "cfroot", "litter_l", "cwd", "co2_abs", "litter_fr", "litter_n",
             "litter_p", "sto_c", "sto_n", "sto_p", "c_cost"]
 
     arr = (rcm, runom, evapm, wsoil, cleaf, cawood, cfroot,
-           litter_l, cwd, litter_fr, litter_n, litter_p,
+           litter_l, cwd, co2_abs, litter_fr, litter_n, litter_p,
            sto1, sto2, sto3, c_cost)
 
     var_attrs = get_var_metadata(vars)

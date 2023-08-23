@@ -76,6 +76,7 @@ subroutine test_budg()
    integer(i_2),dimension(3,npls) :: limitation_status_1
    integer(i_4),dimension(2,npls) :: uptk_strat_1
    real(r_8),dimension(npls) ::  npp2pay_1 ! C costs of N/P uptake
+   real(r_8),dimension(npls) ::  co2_abs
    real(r_8),dimension(4) :: cp ! Aux cp(1:3) CVEG C POOLS cp(4) Auxiliary to HR
    real(r_8) :: c_cost_cwm
 
@@ -125,7 +126,7 @@ subroutine test_budg()
         &, laiavg, rcavg, f5avg, rmavg, rgavg, cleafavg_pft, cawoodavg_pft&
         &, cfrootavg_pft, storage_out_bdgt_1, ocpavg, wueavg, cueavg, c_defavg&
         &, vcmax_1, specific_la_1, nupt_1, pupt_1, litter_l_1, cwd_1, litter_fr_1, npp2pay_1, lit_nut_content_1&
-        &, delta_cveg_1, limitation_status_1, uptk_strat_1, cp, c_cost_cwm)
+        &, delta_cveg_1, co2_abs, limitation_status_1, uptk_strat_1, cp, c_cost_cwm)
 
          sto_budg_in = storage_out_bdgt_1
          cl1_in = cleafavg_pft

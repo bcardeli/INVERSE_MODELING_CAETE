@@ -206,7 +206,7 @@ def catch_out_budget(out):
            "laiavg", "rcavg", "f5avg", "rmavg", "rgavg", "cleafavg_pft", "cawoodavg_pft",
            "cfrootavg_pft", "stodbg", "ocpavg", "wueavg", "cueavg", "c_defavg", "vcmax",
            "specific_la", "nupt", "pupt", "litter_l", "cwd", "litter_fr", "npp2pay", "lnc", "delta_cveg",
-           "limitation_status", "uptk_strat", 'cp', 'c_cost_cwm']
+           "co2_abs", "limitation_status", "uptk_strat", 'cp', 'c_cost_cwm']
 
     return dict(zip(lst, out))
 
@@ -352,6 +352,7 @@ class grd:
         self.pupt = None
         self.litter_l = None
         self.cwd = None
+        self.co2_abs = None #*************
         self.litter_fr = None
         self.lnc = None
         self.storage_pool = None
@@ -442,6 +443,7 @@ class grd:
         self.cfroot = np.zeros(shape=(n,), order='F')
         self.wue = np.zeros(shape=(n,), order='F')
         self.cue = np.zeros(shape=(n,), order='F')
+        self.co2_abs = np.zeros(shape=(n,), order='F') #*************
         self.cdef = np.zeros(shape=(n,), order='F')
         self.nmin = np.zeros(shape=(n,), order='F')
         self.pmin = np.zeros(shape=(n,), order='F')
@@ -505,6 +507,7 @@ class grd:
                      'area': self.area,
                      'wue': self.wue,
                      'cue': self.cue,
+                     'co2_abs': self.co2_abs,
                      'cdef': self.cdef,
                      'nmin': self.nmin,
                      'pmin': self.pmin,
@@ -562,6 +565,7 @@ class grd:
         self.pupt = None
         self.litter_l = None
         self.cwd = None
+        self.co2_abs = None
         self.litter_fr = None
         self.lnc = None
         self.storage_pool = None
@@ -870,6 +874,10 @@ class grd:
                 self._allocate_output_nosave(steps.size)
                 self.save = False
             for step in range(steps.size):
+                days = 366 if m.leap(year0) == 1 else 365
+                #print('step', step, self.wsoil[step])
+                # print('print wsoil',self.wsoil[step])
+
                 if fix_co2_p:
                     pass
                 else:
@@ -1188,6 +1196,7 @@ class grd:
                     self.cleaf[step] = daily_output['cp'][0]
                     self.cawood[step] = daily_output['cp'][1]
                     self.cfroot[step] = daily_output['cp'][2]
+                    self.co2_abs[step] = daily_output['co2_abs']
                     self.hresp[step] = soil_out['hr']
                     self.csoil[:, step] = soil_out['cs']
                     self.inorg_n[step] = self.sp_in_n
