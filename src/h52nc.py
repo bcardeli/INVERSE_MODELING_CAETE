@@ -161,7 +161,7 @@ def get_var_metadata(var):
               'cfroot': ['C in fine roots', 'kg m-2', 'cfroot'],
               'cleaf': ['C in leaves', 'kg m-2', 'cleaf'],
               'cmass': ['total Carbon -Biomass', 'kg m-2', 'cmass'],
-              'co2_abs': ['absorbed CO2 - Service flow indicators', 't/ha/y', 'co2_abs'],
+              'co2_abs': ['absorbed CO2 - Service flow indicators', 't/ha', 'co2_abs'],
               'leaf_nolim': ['no lim. in leaf growth', 'Time fraction', 'leaf_nolim'],
               'leaf_lim_n': ['N lim. growth L', 'Time fraction', 'leaf_lim_n'],
               'leaf_lim_p': ['P lim. growth L', 'Time fraction', 'leaf_lim_p'],

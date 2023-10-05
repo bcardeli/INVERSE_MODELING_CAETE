@@ -946,7 +946,7 @@ class grd:
                 out = model.daily_budget(self.pls_table, self.wp_water_upper_mm, self.wp_water_lower_mm,
                                          self.soil_temp, temp[step], p_atm[step],
                                          ipar[step], ru[step], self.sp_available_n, self.sp_available_p,
-                                         ton, top, self.sp_organic_p, co2, sto, cleaf, cwood, croot,
+                                         ton, top, self.sp_organic_p, self.sp_csoil, co2, sto, cleaf, cwood, croot,
                                          dcl, dca, dcf, uptk_costs, self.wmax_mm)
 
                 # del sto, cleaf, cwood, croot, dcl, dca, dcf, uptk_costs
@@ -1336,7 +1336,7 @@ class grd:
                                      self.soil_temp, temp[step], p_atm[step],
                                      ipar[step], ru[step], self.sp_available_n, self.sp_available_p,
                                      self.sp_snc[:4].sum(
-                                     ), self.sp_so_p, self.sp_snc[4:].sum(),
+                                     ), self.sp_so_p, self.sp_snc[4:].sum(), self.sp_csoil,
                                      co2, sto, cleaf, cwood, croot,
                                      dcl, dca, dcf, uptk_costs, self.wmax_mm)
 

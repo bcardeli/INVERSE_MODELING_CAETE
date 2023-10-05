@@ -26,7 +26,7 @@ module budget
 contains
 
    subroutine daily_budget(dt, w1, w2, ts, temp, p0, ipar, rh&
-        &, mineral_n, labile_p, on, sop, op, catm, sto_budg_in, cl1_in, ca1_in, cf1_in, nleaf_in, nwood_in&
+        &, mineral_n, labile_p, on, sop, op, csoil,catm, sto_budg_in, cl1_in, ca1_in, cf1_in, nleaf_in, nwood_in&
         &, nroot_in, uptk_costs_in, wmax_in, evavg, epavg, phavg, aravg, nppavg&
         &, laiavg, rcavg, f5avg, rmavg, rgavg, cleafavg_pft, cawoodavg_pft&
         &, cfrootavg_pft, storage_out_bdgt_1, ocpavg, wueavg, cueavg, c_defavg&
@@ -57,6 +57,7 @@ contains
       real(r_4),intent(in) :: labile_p             ! solution P O4P  gm-2
       real(r_8),intent(in) :: on, sop, op          ! Organic N, isoluble inorganic P, Organic P g m-2
       real(r_8),intent(in) :: catm, wmax_in                 ! ATM CO2 concentration ppm
+      real(r_8),intent(in) :: csoil                !Soil Organic Carbon', 'g m-2'
 
 
       real(r_8),dimension(3,npls),intent(in)  :: sto_budg_in ! Rapid Storage Pool (C,N,P)  g m-2
@@ -374,7 +375,8 @@ contains
          !       CO2 absortion (ES flow indicators (Burkhard et al., 2014))
          !      =============================================================
 
-         call se_module(cl2(p), ca2(p), cf2(p), awood_aux(p), co2_abs_se(p))
+         call se_module(cl2(p), ca2(p), cf2(p), awood_aux(p), csoil, co2_abs_se(p))
+
          
          ! if (awood_aux(p) .eq. 0.0D0) then
          !    print*, 'GRAMINEA' 
@@ -518,7 +520,7 @@ contains
       cwd_1 = sum(cwd * ocp_coeffs, mask= .not. isnan(cwd))
       litter_fr_1 = sum(litter_fr * ocp_coeffs, mask= .not. isnan(litter_fr))
       c_cost_cwm = sum(npp2pay * ocp_coeffs, mask= .not. isnan(npp2pay))
-      co2_abs_se_1 = sum(co2_abs_se * ocp_coeffs, mask= .not. isnan(co2_abs_se))
+      co2_abs_se_1 = sum(co2_abs_se * ocp_coeffs, mask= .not. isnan(co2_abs_se))*10
 
       cp(1) = sum(cl1_int * ocp_coeffs, mask= .not. isnan(cl1_int))
       cp(2) = sum(ca1_int * (ocp_coeffs * idx_grasses), mask= .not. isnan(ca1_int))

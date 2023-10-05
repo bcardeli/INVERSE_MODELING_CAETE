@@ -661,6 +661,7 @@ contains
       real(r_8) :: layer_size !size of each layer in m. in each grid-cell
       integer(i_4) :: last_with_pls !last layer contains PLS
       real(r_8) :: llight
+      !real(r_8) :: f1ab_layer
 
       type :: layer_array
          real(r_8) :: sum_height
@@ -841,7 +842,9 @@ contains
                if (height1.le.layer(n)%layer_height.and.height1.gt.layer(n-1)%layer_height) then
                   llight = (layer(n)%lavai/ipar)
                   aux_ipar = ipar - (ipar*llight) !limitation in % of IPAR total. 
-                  !print*, n, 'LL ABOVE % =', llight, 'aux_ipar', aux_ipar, 'ipar', ipar
+                  !tf1 = 2*aux_ipar
+                  !print*, n, 'LL ABOVE % =', llight, 'aux_ipar', aux_ipar !, 'ipar', ipar
+                  !print*, n, 'TF1 = ', tf1
                endif
             endif 
          endif  
@@ -1502,8 +1505,8 @@ contains
       do p = 1, npft !to grasses
          if(awood(p) .le. 0.0D0) then
             height(p) = 0.0D0 !in m.
-            diameter(p) = 0.0D0 !in m./indmake 
-            crown_area(p) = 0.0D0 !in m2./ind
+            diameter(p) = 0.0D0 !in m.
+            crown_area(p) = 0.0D0 !in m2.
             dwood(p) = 0.0D0
          else
             diameter(p) = (4*(cawood(p)*1.0D3)/(dwood(p)*1.0D6)*pi*k_allom2)&
@@ -1515,29 +1518,31 @@ contains
       
    end subroutine pls_allometry
 
-   subroutine se_module (cleaf, cwood, cfroot, awood, co2_abs)
+   subroutine se_module (cleaf, cwood, cfroot, awood, csoil, co2_abs)
 
       use types 
       use global_par
 
       real(r_8), intent(in) :: awood
-      real(r_8), intent(in) :: cleaf, cwood, cfroot
-      real(r_8) :: biomass !internal variable
+      real(r_8), intent(in) :: cleaf, cwood, cfroot, csoil
+      real(r_8) :: biomass, carbon_soil !internal variable
       real(r_8) :: co2_abs
 
       !CO2_abs - Quantidade de CO2 absorvido e estocado 
-      !nos tecidos vegetais (caule, folha e raízes). 
+      !nos tecidos vegetais (caule, folha e raízes) e no solo. 
       !SE de regulação climática - Service flow indicators (Burkhard et al., 2014)
       !Unidade: tCO2/ha/ano
       !*3,67 -> equivale ao peso molecular do CO2 determinado pela proporção de CO2 para C;
       !Para cada tonelada de C fixado na fitomassa, corresponde o equivalente a uma mitigação 
       !de 3,67 t de CO2 da atmosfera (Yu, 2004; Nishi et al., 2005).
 
+      carbon_soil = (csoil/1.0D3) !transfor to g/m2 to kg/m2
+
       if (awood .le. 0.0D0) then
-         biomass = (cleaf + cfroot)*10 !transfor kgC/m² -> t/ha
+         biomass = (cleaf + cfroot + carbon_soil) !transfor kgC/m² -> t/ha in BUDGET.f90
          co2_abs = (biomass*3.67) !CO2 absorvido em t/ha
       else
-         biomass = (cleaf + cwood + cfroot)*10 !transfor kgC/m² -> t/ha
+         biomass = (cleaf + cwood + cfroot + carbon_soil) !transfor kgC/m² -> t/ha in BUDGET.f90
          co2_abs = (biomass*3.67) !CO2 absorvido em t/ha
       endif
 
