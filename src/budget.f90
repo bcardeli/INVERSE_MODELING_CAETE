@@ -375,12 +375,13 @@ contains
          !       CO2 absortion (ES flow indicators (Burkhard et al., 2014))
          !      =============================================================
 
-         call se_module(cl2(p), ca2(p), cf2(p), awood_aux(p), csoil, co2_abs_se(p))
+         call se_module(cl2(p), ca2(p), cf2(p), awood_aux(p), csoil, litter_l(p),&
+         & litter_fr(p), cwd(p), co2_abs_se(p))
 
          
          ! if (awood_aux(p) .eq. 0.0D0) then
          !    print*, 'GRAMINEA' 
-         !    print*, 'CO2_ABSORVIDA', co2_abs_se(p)
+         !    print*, 'CO2_ABSORVIDO', co2_abs_se(p)
 
          ! else
          !    print*, '----- WOOD -------'
@@ -388,6 +389,7 @@ contains
          !    print*, 'CLEAF', cl2(p) 
          !    print*, 'CAULE', ca2(p)
          !    print*, 'FINE_ROOT', cf2(p)
+         !    print*, 'CSOIL', csoil
          !    print*, '-------------------'
          ! endif
 
@@ -526,6 +528,8 @@ contains
       cp(2) = sum(ca1_int * (ocp_coeffs * idx_grasses), mask= .not. isnan(ca1_int))
       cp(3) = sum(cf1_int * ocp_coeffs, mask= .not. isnan(cf1_int))
       cp(4) = sum(ar_fix_hr * (ocp_coeffs * idx_pdia), mask= .not. isnan(ar_fix_hr))
+
+      !print*, 'CO2_ABS (t/ha)', co2_abs_se_1
 
 
       ! FILTER BAD VALUES

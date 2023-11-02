@@ -40,7 +40,11 @@ dump_folder = Path(f"{BASE_RUN}_p4")
 
 for gridcell in init_conditions:
     gridcell.clean_run(dump_folder, "init_cond")
-    gridcell.tas += 4.0
+    gridcell.tas += 10.0
+    gridcell.pr -= gridcell.pr * 0.5 ##para fazer temp + precipitação juntos.
+    # prevent negative values
+    gridcell.pr[np.where(gridcell.pr < 0.0)[0]] = 0.0
+    assert np.all(gridcell.pr >= 0.0)
 
 h52nc.EXPERIMENT = "p4"
 from caete import run_breaks_hist as rb
@@ -54,7 +58,7 @@ def zip_gridtime(grd_pool, interval):
 
 
 def apply_funX(grid, brk):
-    grid.run_caete(brk[0], brk[1])
+    grid.run_caete(brk[0], brk[1], fix_co2=800.0) ##para fazer co2, temperatura e prec. juntos.
     return grid
 
 

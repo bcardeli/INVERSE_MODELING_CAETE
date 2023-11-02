@@ -1517,31 +1517,40 @@ contains
       
    end subroutine pls_allometry
 
-   subroutine se_module (cleaf, cwood, cfroot, awood, csoil, co2_abs)
+   subroutine se_module (cleaf, cwood, cfroot, awood, csoil, litter_leaf, litter_fr,&
+      & cwd, co2_abs)
 
       use types 
       use global_par
 
       real(r_8), intent(in) :: awood
       real(r_8), intent(in) :: cleaf, cwood, cfroot, csoil
+      real(r_8), intent(in) :: litter_leaf, litter_fr, cwd
       real(r_8) :: biomass, carbon_soil !internal variable
+      real(r_8) :: om, cwd1 !om = Organic Mat. (leaf and fine root litter) / cwd = coarse wood debries
       real(r_8) :: co2_abs
 
-      !CO2_abs - Quantidade de CO2 absorvido e estocado 
-      !nos tecidos vegetais (caule, folha e raízes) e no solo. 
+      !CO2_abs - Quantidade de CO2 absorvido (sequestrado) e estocado 
+      !nos tecidos vegetais (caule, folha e raízes), no solo e na serrapilheira. 
       !SE de regulação climática - Service flow indicators (Burkhard et al., 2014)
       !Unidade: tCO2/ha/ano
       !*3,67 -> equivale ao peso molecular do CO2 determinado pela proporção de CO2 para C;
       !Para cada tonelada de C fixado na fitomassa, corresponde o equivalente a uma mitigação 
       !de 3,67 t de CO2 da atmosfera (Yu, 2004; Nishi et al., 2005).
+      !Este valor é estimado dividindo o peso molecular do CO2 (44u - C: 12u; O2: 32u)
+      !pelo peso molecular do C (12u). Ou seja, 44/12 = 3,67.
+      !Outras refs: https://www.ecomatcher.com/how-to-calculate-co2-sequestration/
+      !#:~:text=The%20atomic%20weight%20of%20Carbon,in%20the%20tree%20by%203.67. 
 
       carbon_soil = (csoil/1.0D3) !transfor to g/m2 to kg/m2
+      om = ((litter_leaf + litter_fr)/1.0D3) !transfor to g/m2 to kg/m2
+      cwd1 = (cwd/1.0D3) !transfor to g/m2 to kg/m2
 
       if (awood .le. 0.0D0) then
-         biomass = (cleaf + cfroot + carbon_soil) !transfor kgC/m² -> t/ha in BUDGET.f90
+         biomass = (cleaf + cfroot + carbon_soil + om) !transfor kgC/m² -> t/ha in BUDGET.f90
          co2_abs = (biomass*3.67) !CO2 absorvido em t/ha
       else
-         biomass = (cleaf + cwood + cfroot + carbon_soil) !transfor kgC/m² -> t/ha in BUDGET.f90
+         biomass = (cleaf + cwood + cfroot + carbon_soil + om + cwd1) !transfor kgC/m² -> t/ha in BUDGET.f90
          co2_abs = (biomass*3.67) !CO2 absorvido em t/ha
       endif
 
