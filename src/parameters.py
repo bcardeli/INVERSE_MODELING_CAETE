@@ -2,11 +2,11 @@
 from pathlib import Path
 
 # Name of the base historical observed run.
-BASE_RUN = 'RUN1_SE_TEST' #"HISTORICAL-RUN" <- in sombrero this is the 
+BASE_RUN = 'TESTE_SE' #"HISTORICAL-RUN" <- in sombrero this is the 
                   # STANDARD name for the historical observed run
 
 ATTR_FILENAME = "pls_attrs-1000.csv"
-START_COND_FILENAME = f"CAETE_STATE_START_RUN1_SE_TEST_.pkz"
+START_COND_FILENAME = f"CAETE_STATE_START_TESTE_SE_.pkz"
 
 run_path = Path(f"../outputs/{BASE_RUN}/{START_COND_FILENAME}")
 pls_path = Path(f"../outputs/{BASE_RUN}/{ATTR_FILENAME}")
