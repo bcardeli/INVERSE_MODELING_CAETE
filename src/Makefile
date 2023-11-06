@@ -17,7 +17,7 @@
 
 
 # Build caete_module & debug programs
-PYEXEC = python3
+PYEXEC = python
 F2PY = $(PYEXEC) -m numpy.f2py
 MODNAME = caete_module
 INTERFACES = $(MODNAME).pyf
