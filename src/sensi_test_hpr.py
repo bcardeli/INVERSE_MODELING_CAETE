@@ -42,7 +42,7 @@ dump_folder = Path(f"{BASE_RUN}_hpr")
 
 for gridcell in init_conditions:
     gridcell.clean_run(dump_folder, "init_cond")
-    gridcell.pr -= gridcell.pr * 0.058
+    gridcell.pr -= gridcell.pr * 0.148
     # prevent negative values
     gridcell.pr[np.where(gridcell.pr < 0.0)[0]] = 0.0
     assert np.all(gridcell.pr >= 0.0)
