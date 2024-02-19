@@ -2,7 +2,7 @@
 from pathlib import Path
 
 # Name of the base historical observed run.
-BASE_RUN = 'nclim_isa' #"HISTORICAL-RUN" <- in sombrero this is the 
+BASE_RUN = 'nclim_central' #"HISTORICAL-RUN" <- in sombrero this is the 
                   # STANDARD name for the historical observed run
 
 ATTR_FILENAME = "pls_attrs-1000.csv"
