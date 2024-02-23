@@ -40,8 +40,8 @@ dump_folder = Path(f"{BASE_RUN}_p4")
 
 for gridcell in init_conditions:
     gridcell.clean_run(dump_folder, "init_cond")
-    gridcell.tas += 4.4 #TEMPERATURE (ºC) - #RCP4.5: 3.2 / RCP7.0: 4.4 / RCP8.5: 5,5
-    gridcell.pr -= gridcell.pr * 0.129 #PRECIPITATION (%) - #RCP4.5: 0.58 / RCP6.0: 0.129 / RCP8.0: 0.148
+    gridcell.tas += 5.5 #TEMPERATURE (ºC) - #RCP4.5: 3.2 / RCP7.0: 4.4 / RCP8.5: 5,5
+    gridcell.pr -= gridcell.pr * 0.148 #PRECIPITATION (%) - #RCP4.5: 0.58 / RCP6.0: 0.129 / RCP8.0: 0.148
     # prevent negative values
     gridcell.pr[np.where(gridcell.pr < 0.0)[0]] = 0.0
     assert np.all(gridcell.pr >= 0.0)
@@ -58,7 +58,7 @@ def zip_gridtime(grd_pool, interval):
 
 
 def apply_funX(grid, brk):
-    grid.run_caete(brk[0], brk[1], fix_co2=850.0) #[CO2] (ppm) 
+    grid.run_caete(brk[0], brk[1], fix_co2=1350) #[CO2] (ppm) 
     #RCP2.4: 600 / RCP6.0: 850 / RCP8.0: 1350
     return grid
 
