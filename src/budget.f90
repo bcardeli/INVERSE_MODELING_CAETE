@@ -522,7 +522,7 @@ contains
       cwd_1 = sum(cwd * ocp_coeffs, mask= .not. isnan(cwd))
       litter_fr_1 = sum(litter_fr * ocp_coeffs, mask= .not. isnan(litter_fr))
       c_cost_cwm = sum(npp2pay * ocp_coeffs, mask= .not. isnan(npp2pay))
-      co2_abs_se_1 = sum(co2_abs_se * ocp_coeffs, mask= .not. isnan(co2_abs_se))*10
+      co2_abs_se_1 = sum(co2_abs_se * ocp_coeffs, mask= .not. isnan(co2_abs_se))*10 !transfor to kg/m² to t/ha.
 
       cp(1) = sum(cl1_int * ocp_coeffs, mask= .not. isnan(cl1_int))
       cp(2) = sum(ca1_int * (ocp_coeffs * idx_grasses), mask= .not. isnan(ca1_int))
