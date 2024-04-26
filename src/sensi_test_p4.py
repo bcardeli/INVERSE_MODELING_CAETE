@@ -58,9 +58,12 @@ def zip_gridtime(grd_pool, interval):
 
 
 def apply_funX(grid, brk):
-    grid.run_caete(brk[0], brk[1]) #fix_co2=600) #[CO2] (ppm) 
-    #RCP2.4: 600 / RCP6.0: 850 / RCP8.0: 1350
+    grid.run_caete(brk[0], brk[1])
     return grid
+
+#[CO2] (ppm) 
+#RCP2.4: 600 / RCP6.0: 850 / RCP8.0: 1350
+
 
 
 n_proc = mp.cpu_count()
