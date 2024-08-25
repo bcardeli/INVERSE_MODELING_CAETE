@@ -359,7 +359,7 @@ def zip_gridtime(grd_pool, interval):
 
 
 def apply_funX(grid:grd, brk:list)->grd:
-    grid.run_caete(brk[0], brk[1]) #fix_co2=1350) ##EXPERIMENT_RCP
+    grid.run_caete(brk[0], brk[1], fix_co2=600) ##EXPERIMENT_RCP
     return grid
 
 # Garbage collection
