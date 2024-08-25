@@ -244,7 +244,7 @@ def table_gen(NPLS, fpath=None):
     while index0 < diffg:
         restime = np.zeros(shape=(3,), dtype=np.float64)
         dwood = 0.0
-        sla_var = np.random.uniform(0.009, 0.040, NPLS) #(0.009-0.040) TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
+        sla_var = np.random.uniform(0.009, 0.020, NPLS) #(0.009-0.040) TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_grass[np.random.randint(0, plsa_grass.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
         restime[1] = 0.0
@@ -287,7 +287,7 @@ def table_gen(NPLS, fpath=None):
     # # # COMBINATIONS
     # # # Random samples from  distributions (g1, tleaf ...)
     # # # Random variables
-    g1 = np.random.uniform(0.1, 10.0, NPLS)
+    g1 = np.random.uniform(10.0, 19.0, NPLS)
     # g1 = vec_ranging(np.random.beta(1.2, 2, NPLS), 1.0, 15.0) # dimensionles
     # # vcmax = np.random.uniform(3e-5, 100e-5,N) # molCO2 m-2 s-1
     resorption = np.random.uniform(0.2, 0.7, NPLS)
