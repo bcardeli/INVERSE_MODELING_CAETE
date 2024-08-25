@@ -114,7 +114,18 @@ module allometry_par
          krp = 1.6            ,&            !allometric constant default (Table 4.1; Seiler et al., 2014)
          turnover_rate_sapwood = 0.05  ,&       !fix value for allometry/allocation calculus (Table1, Sitch et al., 2003)
          turnover_rate = 0.5                !fix value for leaf and root turnover (Table 1, Sitch et al., 2003)
-end module allometry_par"""
+end module allometry_par
+
+module layers
+   use types
+   implicit none
+
+   real(r_4),parameter,public :: max_height = 50.0 !Reference: Sakschewski et al., XXX - Light competition dynamic.
+   integer(i_4),parameter,public :: num_layer = (max_height/5.)
+
+end module layers"""
+
+
 
 
 

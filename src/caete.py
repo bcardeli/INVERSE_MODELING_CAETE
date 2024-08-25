@@ -206,7 +206,7 @@ def catch_out_budget(out):
            "laiavg", "rcavg", "f5avg", "rmavg", "rgavg", "cleafavg_pft", "cawoodavg_pft",
            "cfrootavg_pft", "stodbg", "ocpavg", "wueavg", "cueavg", "c_defavg", "vcmax",
            "specific_la", "nupt", "pupt", "litter_l", "cwd", "litter_fr", "npp2pay", "lnc", "delta_cveg",
-           "co2_abs", "limitation_status", "uptk_strat", 'cp', 'c_cost_cwm']
+           "co2_abs", "limitation_status", "uptk_strat", 'cp', 'c_cost_cwm', "height_pft"]
 
     return dict(zip(lst, out))
 
@@ -359,6 +359,7 @@ class grd:
         self.lim_status = None
         self.uptake_strategy = None
         self.carbon_costs = None
+        self.height_pft = None
 
         # WATER POOLS
         # Water content for each soil layer
@@ -464,6 +465,7 @@ class grd:
             shape=(3, npls, n), dtype=np.dtype('int16'), order='F')
         self.uptake_strategy = np.zeros(
             shape=(2, npls, n), dtype=np.dtype('int32'), order='F')
+        self.height_pft = np.zeros(shape=(n,), order='F')
 
     def _flush_output(self, run_descr, index):
         """1 - Clean variables that receive outputs from the fortran subroutines
@@ -522,6 +524,7 @@ class grd:
                      'ls': self.ls,
                      'lim_status': self.lim_status,
                      'c_cost': self.carbon_costs,
+                     'height_pft': self.height_pft,
                      'u_strat': self.uptake_strategy,
                      'storage_pool': self.storage_pool,
                      'calendar': self.calendar,    # Calendar name
@@ -572,8 +575,9 @@ class grd:
         self.ls = None
         self.ls_id = None
         self.lim_status = None
-        self.carbon_costs = None,
+        self.carbon_costs = None
         self.uptake_strategy = None
+        self.height_pft = None
 
         return to_pickle
 
@@ -836,13 +840,20 @@ class grd:
         spin = 1 if spinup == 0 else spinup
 
         # Catch climatic input and make conversions
-        temp = self.tas[lb: hb + 1] - 273.15  # ! K to °C
-        prec = self.pr[lb: hb + 1] * 86400  # kg m-2 s-1 to  mm/day
+        temp = self.tas[lb: hb + 1] - 273.15 # ! K to °C
+        #temp = temp1 + 5.5  ##EXPERIMENT_RCP
+        prec = self.pr[lb: hb + 1] * 86400 # kg m-2 s-1 to  mm/day
+        #prec = prec1 - (prec1 * 0.148)    ##EXPERIMENT_RCP
+        prec[np.where(prec < 0.0)[0]] = 0.0
         # transforamando de Pascal pra mbar (hPa)
         p_atm = self.ps[lb: hb + 1] * 0.01
         # W m-2 to mol m-2 s-1 ! 0.5 converts RSDS to PAR
         ipar = self.rsds[lb: hb + 1] * 0.5 / 2.18e5
         ru = self.rhs[lb: hb + 1] / 100.0
+
+        #print('prec', prec, 'prec1', prec1)
+        #print('temp', temp, 'temp1', temp1)
+        #print('co2', fix_co2)
 
         year0 = start.year
         co2 = find_co2(year0)
@@ -1196,6 +1207,7 @@ class grd:
                     self.cleaf[step] = daily_output['cp'][0]
                     self.cawood[step] = daily_output['cp'][1]
                     self.cfroot[step] = daily_output['cp'][2]
+                    self.height_pft[step]=daily_output['height_pft']
                     self.co2_abs[step] = daily_output['co2_abs']
                     self.hresp[step] = soil_out['hr']
                     self.csoil[:, step] = soil_out['cs']

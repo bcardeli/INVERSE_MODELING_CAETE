@@ -31,7 +31,7 @@ contains
         &, laiavg, rcavg, f5avg, rmavg, rgavg, cleafavg_pft, cawoodavg_pft&
         &, cfrootavg_pft, storage_out_bdgt_1, ocpavg, wueavg, cueavg, c_defavg&
         &, vcmax_1, specific_la_1, nupt_1, pupt_1, litter_l_1, cwd_1, litter_fr_1, npp2pay_1, lit_nut_content_1&
-        &, delta_cveg_1,co2_abs_se_1, limitation_status_1, uptk_strat_1, cp, c_cost_cwm)
+        &, delta_cveg_1,co2_abs_se_1, limitation_status_1, uptk_strat_1, cp, c_cost_cwm, height)
 
 
       use types
@@ -41,6 +41,7 @@ contains
       use omp_lib
 
       use photo
+      use layers
       use water, only: evpot2, penman, available_energy, runoff
 
       !     ----------------------------INPUTS-------------------------------
@@ -99,6 +100,7 @@ contains
       real(r_8),dimension(npls),intent(out) :: cawoodavg_pft  !
       real(r_8),dimension(npls),intent(out) :: cfrootavg_pft  !
       real(r_8),dimension(npls),intent(out) :: ocpavg         ! [0-1] Gridcell occupation
+      real(r_8),intent(out) :: height
       real(r_8),dimension(3,npls),intent(out) :: delta_cveg_1
       real(r_8),dimension(3,npls),intent(out) :: storage_out_bdgt_1
       integer(i_2),dimension(3,npls),intent(out) :: limitation_status_1
@@ -176,7 +178,7 @@ contains
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
       real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux
       real(r_8), dimension(npls) :: delta_biomass
-      real(r_8) :: max_height
+      !real(r_8) :: max_height
       
       
       
@@ -219,7 +221,7 @@ contains
       ! print*, 'CAWOOD (kg/m2)', ca1_pft
       ! print*, 'DIAMETER', diameter_aux
 
-      max_height = maxval(height_aux(:))
+      !max_height = maxval(height_aux(:))
 
 
       nlen = sum(run)    ! New length for the arrays in the main loop
@@ -334,7 +336,7 @@ contains
 
          call prod(dt1,catm, temp, soil_temp, p0, w, ipar, sla_aux(p),rh, emax&
                &, cl1_pft(ri), ca1_pft(ri), cf1_pft(ri), nleaf(ri), nwood(ri), nroot(ri)&
-               &, height_aux(ri), max_height, soil_sat, ph(p), ar(p), nppa(p), laia(p), f5(p), vpd(p), rm(p), rg(p), rc2(p)&
+               &, height_aux(ri), soil_sat, ph(p), ar(p), nppa(p), laia(p), f5(p), vpd(p), rm(p), rg(p), rc2(p)&
                &, wue(p), c_def(p), vcmax(p), tra(p))
 
          evap(p) = penman(p0,temp,rh,available_energy(temp),rc2(p)) !Actual evapotranspiration (evap, mm/day)
@@ -375,8 +377,7 @@ contains
          !       CO2 absortion (ES flow indicators (Burkhard et al., 2014))
          !      =============================================================
 
-         call se_module(cl2(p), ca2(p), cf2(p), awood_aux(p), csoil, litter_l(p),&
-         & litter_fr(p), cwd(p), co2_abs_se(p))
+         call se_module(cl2(p), ca2(p), cf2(p), awood_aux(p), csoil, co2_abs_se(p))
 
          
          ! if (awood_aux(p) .eq. 0.0D0) then
@@ -495,6 +496,7 @@ contains
       limitation_status_1(:,:) = 0
       uptk_strat_1(:,:) = 0
       npp2pay_1(:) = 0.0
+      height = 0.0D0
       
 
       ! CALCULATE CWM FOR ECOSYSTEM PROCESSES
@@ -529,7 +531,9 @@ contains
       cp(3) = sum(cf1_int * ocp_coeffs, mask= .not. isnan(cf1_int))
       cp(4) = sum(ar_fix_hr * (ocp_coeffs * idx_pdia), mask= .not. isnan(ar_fix_hr))
 
-      !print*, 'CO2_ABS (t/ha)', co2_abs_se_1
+      height = sum(height_int * ocp_coeffs, mask= .not. isnan(height_int))
+
+      !print*, 'GPP', phavg
 
 
       ! FILTER BAD VALUES

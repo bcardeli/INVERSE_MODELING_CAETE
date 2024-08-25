@@ -333,7 +333,7 @@ contains
 
       D1 = sqrt(vapour_p_d)
       gs = 0.003 + 1.6D0 * (1.0D0 + (g1/D1)) * ((f1_in * 1.0e6)/ca) ! mol m-2 s-1
-      gs = gs * (1.0D0 / 44.6D0)! convrt from  mol/m²/s to m s-1
+      gs = gs * (0.02520) !(1.0D0 / 44.6D0)! convrt from  mol/m²/s to m s-1
       rc2_in = real( 1.0D0 / gs, r_4)  !  s m-1
 
       if(rc2_in .ge. rcmax) rc2_in = rcmax
@@ -596,13 +596,14 @@ contains
    !=================================================================
 
    subroutine photosynthesis_rate(c_atm, temp,p0,ipar,sla_var,c4,nbio,pbio,&
-        & cleaf,cawood1,height1,max_height,f1ab,vm, amax)
+        & cleaf,cawood1,height1,f1ab,vm, amax)
 
       ! f1ab SCALAR returns instantaneous photosynthesis rate at leaf level (molCO2/m2/s)
       ! vm SCALAR Returns maximum carboxilation Rate (Vcmax) (molCO2/m2/s)
       use types
       use global_par
       use photo_par
+      use layers
       ! implicit none
       ! I
       real(r_4),intent(in) :: temp  ! temp °C
@@ -615,7 +616,7 @@ contains
       ! real(r_8),intent(in) :: leaf_turnover   ! y
       real(r_8),intent(in) :: sla_var
       real(r_8),intent(in) :: height1
-      real(r_8),intent(in) :: max_height
+      !real(r_8),intent(in) :: max_height
       real(r_8),intent(in) :: cawood1
       real(r_8),intent(in) :: cleaf
 
@@ -657,7 +658,7 @@ contains
       !Internal Variables [LIGHT COMPETITION] ---------------------------------------
       integer(i_4) :: n
       real(r_8) :: index_leaf
-      integer(i_4) :: num_layer !number of layers according to max height in each grid-cel
+      !integer(i_4) :: num_layer !number of layers according to max height in each grid-cel
       real(r_8) :: layer_size !size of each layer in m. in each grid-cell
       integer(i_4) :: last_with_pls !last layer contains PLS
       real(r_8) :: llight
@@ -725,10 +726,10 @@ contains
       !       LIGHT COMPETITION DYNAMIC. [LAYERS]
       ! =================================================
 
-      num_layer = 0
+      !num_layer = 0
       layer_size = 0.0D0
 
-      num_layer = nint(max_height/5)
+      !num_layer = nint(max_height/5)
       ! print*, 'num layer is', num_layer, 'max_height=', max_height
 
       allocate(layer(1:num_layer))
@@ -1517,17 +1518,14 @@ contains
       
    end subroutine pls_allometry
 
-   subroutine se_module (cleaf, cwood, cfroot, awood, csoil, litter_leaf, litter_fr,&
-      & cwd, co2_abs)
+   subroutine se_module (cleaf, cwood, cfroot, awood, csoil, co2_abs)
 
       use types 
       use global_par
 
       real(r_8), intent(in) :: awood
       real(r_8), intent(in) :: cleaf, cwood, cfroot, csoil
-      real(r_8), intent(in) :: litter_leaf, litter_fr, cwd
       real(r_8) :: biomass, carbon_soil !internal variable
-      real(r_8) :: om, cwd1 !om = Organic Mat. (leaf and fine root litter) / cwd = coarse wood debries
       real(r_8) :: co2_abs
 
       !CO2_abs - Quantidade de CO2 absorvido (sequestrado) e estocado 
@@ -1543,14 +1541,12 @@ contains
       !#:~:text=The%20atomic%20weight%20of%20Carbon,in%20the%20tree%20by%203.67. 
 
       carbon_soil = (csoil/1.0D3) !transfor to g/m2 to kg/m2
-      om = ((litter_leaf + litter_fr)/1.0D3) !transfor to g/m2 to kg/m2
-      cwd1 = (cwd/1.0D3) !transfor to g/m2 to kg/m2
 
       if (awood .le. 0.0D0) then
-         biomass = (cleaf + cfroot + carbon_soil + om) !transfor kgC/m² -> t/ha in BUDGET.f90
+         biomass = (cleaf + cfroot + carbon_soil) !transfor kgC/m² -> t/ha in BUDGET.f90
          co2_abs = (biomass*3.67) !CO2 absorvido em t/ha
       else
-         biomass = (cleaf + cwood + cfroot + carbon_soil + om + cwd1) !transfor kgC/m² -> t/ha in BUDGET.f90
+         biomass = (cleaf + cwood + cfroot + carbon_soil) !transfor kgC/m² -> t/ha in BUDGET.f90
          co2_abs = (biomass*3.67) !CO2 absorvido em t/ha
       endif
 

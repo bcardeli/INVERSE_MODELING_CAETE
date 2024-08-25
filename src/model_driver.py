@@ -146,7 +146,7 @@ if not sombrero:
         zone = 'c'
 
 if zone == 'c':
-    y0, y1 = 175, 178 #175, 186
+    y0, y1 = 183, 186 #175, 186
     x0, x1 = 235, 238 #235, 241
     folder = "central"
 
@@ -350,6 +350,7 @@ def apply_fun0(grid:grd)->grd:
     return grid
 
 
+
 def zip_gridtime(grd_pool, interval):
     res = []
     for i, j in enumerate(grd_pool):
@@ -358,7 +359,7 @@ def zip_gridtime(grd_pool, interval):
 
 
 def apply_funX(grid:grd, brk:list)->grd:
-    grid.run_caete(brk[0], brk[1])
+    grid.run_caete(brk[0], brk[1]) #fix_co2=1350) ##EXPERIMENT_RCP
     return grid
 
 # Garbage collection
