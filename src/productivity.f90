@@ -27,14 +27,13 @@ module productivity
 contains
 
   subroutine prod(dt,catm,temp,ts,p0,w,ipar,sla1,rh,emax,cl1_prod,&
-       & ca1_prod,cf1_prod,beta_leaf,beta_awood,beta_froot,height1,wmax,ph,ar,&
+       & ca1_prod,cf1_prod,beta_leaf,beta_awood,beta_froot,height1,max_height,wmax,ph,ar,&
        & nppa,laia,f5,vpd,rm,rg,rc,wue,c_defcit,vm_out,e)
 
     use types
     use global_par
     use photo_par
     use photo
-    use layers
     use water
 
 !Input
@@ -51,7 +50,7 @@ contains
     real(r_8), intent(in) :: beta_froot, wmax
     real(r_8), intent(in) :: sla1
     real(r_8), intent(in) :: height1
-    !real(r_8), intent(in) :: max_height
+    real(r_8), intent(in) :: max_height
     ! logical(l_1), intent(in) :: light_limit                !True for no ligth limitation
 
 !     Output
@@ -114,7 +113,7 @@ contains
 ! rate (molCO2/m2/s)
 
     call photosynthesis_rate(catm,temp,p0,ipar,sla1,c4_int,n2cl,&
-         & p2cl,cl1_prod,ca1_prod,height1,f1a,vm_out,jl_out)
+         & p2cl,cl1_prod,ca1_prod,height1,max_height,f1a,vm_out,jl_out)
 
 
     ! VPD

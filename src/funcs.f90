@@ -596,14 +596,13 @@ contains
    !=================================================================
 
    subroutine photosynthesis_rate(c_atm, temp,p0,ipar,sla_var,c4,nbio,pbio,&
-        & cleaf,cawood1,height1,f1ab,vm, amax)
+        & cleaf,cawood1,height1,max_height,f1ab,vm, amax)
 
       ! f1ab SCALAR returns instantaneous photosynthesis rate at leaf level (molCO2/m2/s)
       ! vm SCALAR Returns maximum carboxilation Rate (Vcmax) (molCO2/m2/s)
       use types
       use global_par
       use photo_par
-      use layers
       ! implicit none
       ! I
       real(r_4),intent(in) :: temp  ! temp °C
@@ -616,7 +615,7 @@ contains
       ! real(r_8),intent(in) :: leaf_turnover   ! y
       real(r_8),intent(in) :: sla_var
       real(r_8),intent(in) :: height1
-      !real(r_8),intent(in) :: max_height
+      real(r_8),intent(in) :: max_height
       real(r_8),intent(in) :: cawood1
       real(r_8),intent(in) :: cleaf
 
@@ -658,7 +657,7 @@ contains
       !Internal Variables [LIGHT COMPETITION] ---------------------------------------
       integer(i_4) :: n
       real(r_8) :: index_leaf
-      !integer(i_4) :: num_layer !number of layers according to max height in each grid-cel
+      integer(i_4) :: num_layer !number of layers according to max height in each grid-cel
       real(r_8) :: layer_size !size of each layer in m. in each grid-cell
       integer(i_4) :: last_with_pls !last layer contains PLS
       real(r_8) :: llight
@@ -726,10 +725,10 @@ contains
       !       LIGHT COMPETITION DYNAMIC. [LAYERS]
       ! =================================================
 
-      !num_layer = 0
+      num_layer = 0
       layer_size = 0.0D0
 
-      !num_layer = nint(max_height/5)
+      num_layer = nint(max_height/5)
       ! print*, 'num layer is', num_layer, 'max_height=', max_height
 
       allocate(layer(1:num_layer))

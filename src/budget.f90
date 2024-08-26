@@ -41,7 +41,6 @@ contains
       use omp_lib
 
       use photo
-      use layers
       use water, only: evpot2, penman, available_energy, runoff
 
       !     ----------------------------INPUTS-------------------------------
@@ -178,7 +177,7 @@ contains
       real(r_8), dimension(:), allocatable :: idx_grasses, idx_pdia
       real(r_8), dimension(npls) :: diameter_aux, crown_aux, height_aux
       real(r_8), dimension(npls) :: delta_biomass
-      !real(r_8) :: max_height
+      real(r_8) :: max_height
       
       
       
@@ -221,7 +220,7 @@ contains
       ! print*, 'CAWOOD (kg/m2)', ca1_pft
       ! print*, 'DIAMETER', diameter_aux
 
-      !max_height = maxval(height_aux(:))
+      max_height = maxval(height_aux(:))
 
 
       nlen = sum(run)    ! New length for the arrays in the main loop
@@ -336,7 +335,7 @@ contains
 
          call prod(dt1,catm, temp, soil_temp, p0, w, ipar, sla_aux(p),rh, emax&
                &, cl1_pft(ri), ca1_pft(ri), cf1_pft(ri), nleaf(ri), nwood(ri), nroot(ri)&
-               &, height_aux(ri), soil_sat, ph(p), ar(p), nppa(p), laia(p), f5(p), vpd(p), rm(p), rg(p), rc2(p)&
+               &, height_aux(ri), max_height, soil_sat, ph(p), ar(p), nppa(p), laia(p), f5(p), vpd(p), rm(p), rg(p), rc2(p)&
                &, wue(p), c_def(p), vcmax(p), tra(p))
 
          evap(p) = penman(p0,temp,rh,available_energy(temp),rc2(p)) !Actual evapotranspiration (evap, mm/day)
