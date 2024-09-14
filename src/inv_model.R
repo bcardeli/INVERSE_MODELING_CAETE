@@ -1,3 +1,18 @@
+###                      INVERSE MODELING ALGORITHM                          ###
+# ---------------------------------------------------------------------------- #
+#      A new modeling approach to evaluate the effects of climate change 
+#           on plant functional diversity in the Amazon rainforest
+# ---------------------------------------------------------------------------- #
+
+# This algorithm automates and integrates plant traits optimization (SLA, WD, G1) to 
+# identify communities that sustain ecosystem processes and services services 
+# under climate change scenarios similar to stable climates.
+# MODEL INTEGRATED: CAETÊ-DVM (Rius et al., 2023 - allom2light [branch] Cardeli et al., 2021)
+
+#AUTHOR: Bárbara R. Cardeli (barbara.r.cardeli (at) gmail.com)
+
+# Let's go!!!!! ;-)
+
 # Load required libraries
 library(jsonlite) #To create important config files 
 library(ncdf4) #To read NetCDF files
@@ -83,7 +98,8 @@ delete_folder <- function(folder_path) {
 ####### PRE-PROCESSING #######
 
 # Define base experiment results [VERIFICATION]
-base_directory <- "//home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs/RUN_BASE/nc_outputs"
+# If you are running this algorithm for the first time, you should ask for this data. 
+base_directory <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs/RUN_BASE/nc_outputs"
 base_et_file <- "evapm_20150101-20161231.nc4"
 base_gpp_file <- "photo_20150101-20161231.nc4"
 base_sum_files <- c("cleaf_20150101-20161231.nc4", "cawood_20150101-20161231.nc4", "cfroot_20150101-20161231.nc4")
@@ -111,9 +127,9 @@ iterations <- 10 #Loop number
 # OPTIMIZATION LOOP
 for (i in 1:iterations) {
   
-  cat("Inicializand optmizaion...\n")
+  cat("Starting optmizaion...\n")
   
-  # Call Python script to run the CAETÊ model
+  # Call Python script to run the CAETÊ-DVM model
   system(paste("python3 /home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/model_driver.py"), wait = TRUE)
   
   # Optimization to find the best distribution parameters
