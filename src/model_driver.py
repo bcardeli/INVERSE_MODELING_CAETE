@@ -63,6 +63,7 @@ import _pickle as pkl
 import bz2
 import copy
 import multiprocessing as mp
+import json
 from pathlib import Path
 from random import shuffle
 
@@ -79,10 +80,14 @@ __descr__ = """RUN CAETÊ"""
 
 FUNCALLS = 0
 
+# Carrega o arquivo de configuração
+with open('config.json') as f:
+    config = json.load(f)
 
 def check_start():
     while True:
-        i = input("---RUN IN SOMBRERO(y/n): ")
+        i = config['sombrero']
+        #i = input("---RUN IN SOMBRERO(y/n): ")
         if i == 'y':
             r = True
             break
@@ -124,20 +129,31 @@ soil_texture = np.load("../input/hydra/soil_text.npy")
 
 hsoil = (theta_sat, psi_sat, soil_texture)
 
-
-
 if not sombrero:
     print("Set the folder to store outputs:")
-    outf = input(
-        "Give a name to your run (ASCII letters and numbers only. No spaces): ")
+
+    # Pega o valor da configuração para o nome da execução
+    outf = config['run_name']
+    print(f"Storing outputs in: {outf}")
+
+    #outf = input(
+        #"Give a name to your run (ASCII letters and numbers only. No spaces): ")
+    
+    run_name_path = Path('/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt')
+    # Gravar o nome da pasta no arquivo run_name.txt
+    with open(run_name_path, 'w') as file:
+        file.write(f"{outf}\n")
+    print(f"Nome da pasta gravado no arquivo run_name.txt: {outf}")
+    
     dump_folder = Path(f'../outputs/{outf}').resolve()
     nc_outputs = Path(os.path.join(dump_folder, Path("nc_outputs"))).resolve()
-    print(
-        f"The raw model results & the PLS table will be saved at: {dump_folder}\n")
+    print(f"The raw model results & the PLS table will be saved at: {dump_folder}\n")
     print(f"The final netCDF files will be stored at: {nc_outputs}\n")
 
+
 if not sombrero:
-    zone = input("Select a zone [c: central, s: south, e: east, nw: NW]: ")
+    zone = config['zone']
+    #zone = input("Select a zone [c: central, s: south, e: east, nw: NW]: ")
     if zone in ['c', 's', 'e', 'nw']:
         print("Running in the zone:", zone)
         pass
@@ -359,7 +375,7 @@ def zip_gridtime(grd_pool, interval):
 
 
 def apply_funX(grid:grd, brk:list)->grd:
-    grid.run_caete(brk[0], brk[1], fix_co2=1350) ##EXPERIMENT_RCP
+    grid.run_caete(brk[0], brk[1]) #fix_co2=1350) ##EXPERIMENT_RCP (SSP 4.5 = 600 // SSP 8.5 = 1350)
     return grid
 
 # Garbage collection

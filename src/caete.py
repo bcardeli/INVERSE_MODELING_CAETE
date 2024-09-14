@@ -23,6 +23,7 @@ import sys
 import copy
 import _pickle as pkl
 import random as rd
+import json
 from threading import Thread
 from time import sleep
 from pathlib import Path
@@ -48,9 +49,14 @@ out_ext = ".pkz"
 npls = gp.npls
 runplotp = False
 
+# Carrega o arquivo de configuração
+with open('config.json') as f:
+    config = json.load(f)
+
 while True:
-    maskp = input(
-        "TWO MASK OPTIONS: AMAZON BIOME (a); PAN-AMAZON (b) OR PLOT RUN (c): ")
+    maskp = config['mask_option']
+    #maskp = input(
+        #"TWO MASK OPTIONS: AMAZON BIOME (a); PAN-AMAZON (b) OR PLOT RUN (c): ")
     if maskp == 'b':
         mask = np.load("../input/mask/mask_raisg-360-720.npy")
         break
@@ -841,9 +847,9 @@ class grd:
 
         # Catch climatic input and make conversions
         temp1 = self.tas[lb: hb + 1] - 273.15 # ! K to °C
-        temp = temp1 + 5.5  ##EXPERIMENT_RCP
+        temp = temp1 + 5.5  ##EXPERIMENT_RCP (SSP 4.5 = 3.2 // SSP 8.5 = 5.5)
         prec1 = self.pr[lb: hb + 1] * 86400 # kg m-2 s-1 to  mm/day
-        prec = prec1 - (prec1 * 0.148)    ##EXPERIMENT_RCP
+        prec = prec1 - (prec1 * 0.148)    ##EXPERIMENT_RCP (SSP 4.5 = -5.8 [0.058] // SSP 8.5 = -14.8 [0.148])
         prec[np.where(prec < 0.0)[0]] = 0.0
         # transforamando de Pascal pra mbar (hPa)
         p_atm = self.ps[lb: hb + 1] * 0.01
