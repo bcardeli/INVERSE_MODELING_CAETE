@@ -141,6 +141,7 @@ if not sombrero:
     
     run_name_path = Path('/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt')
     # Gravar o nome da pasta no arquivo run_name.txt
+   
     with open(run_name_path, 'w') as file:
         file.write(f"{outf}\n")
     print(f"Nome da pasta gravado no arquivo run_name.txt: {outf}")
@@ -375,7 +376,7 @@ def zip_gridtime(grd_pool, interval):
 
 
 def apply_funX(grid:grd, brk:list)->grd:
-    grid.run_caete(brk[0], brk[1]) #fix_co2=1350) ##EXPERIMENT_RCP (SSP 4.5 = 600 // SSP 8.5 = 1350)
+    grid.run_caete(brk[0], brk[1], fix_co2=600) ##EXPERIMENT_RCP (fix_co2=600 [SSP 4.5] // fix_co2=1350 [SSP 8.5])
     return grid
 
 # Garbage collection
