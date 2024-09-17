@@ -139,8 +139,12 @@ if not sombrero:
     #outf = input(
         #"Give a name to your run (ASCII letters and numbers only. No spaces): ")
     
-    run_name_path = Path('/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt')
-    # Gravar o nome da pasta no arquivo run_name.txt
+    #ON SERVER:
+    run_name_path = Path('/home/amazonfaceme/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/src/run_name.txt')
+    
+    #IN YOUR MACHINE
+    #run_name_path = Path('/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt')
+    # Gravar o nome da pasta no arquivo run_name.txt 
    
     with open(run_name_path, 'w') as file:
         file.write(f"{outf}\n")
