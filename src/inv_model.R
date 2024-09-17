@@ -122,7 +122,7 @@ if (file.exists("npls.txt")) {
 
 # Initial parameters dos traits (WD, SLA and G1, respectively - see pls_gen.py)
 initial_params <- c(0.5, 0.9, 0.009, 0.040, 0.1, 19.0)
-iterations <- 30 #Loop number
+iterations <- 100 #Loop number
 
 # Define a counter to track the number of successful matches
 match_counter <- 0
@@ -255,18 +255,6 @@ for (i in 1:iterations) {
     } else {
       stop("Error: 'nc_outputs' folder not found. The original folder will not be deleted.")
     }
-    
-    ##############################################################
-    
-    # # Output file patch
-    # output_file <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "resultados_otimizacao.txt")
-    # 
-    # # Range optimazed
-    # traits_optim <- sprintf("Iteração %d: dwood_min = %.2f, dwood_max = %.2f, sla_min = %.4f, sla_max = %.4f, g1_min = %.2f, g1_max = %.2f\n",
-    #                     i, opt_result$par[1], opt_result$par[2], opt_result$par[3], opt_result$par[4], opt_result$par[5], opt_result$par[6])
-    # 
-    # # Save the optimazed range
-    # write(traits_optim, file = output_file, append = TRUE)
     
     # Continue searching for more matches
     if (match_counter >= 30) {
