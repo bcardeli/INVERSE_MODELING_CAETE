@@ -101,7 +101,7 @@ delete_folder <- function(folder_path) {
 # If you are running this algorithm for the first time, you should ask for this data. 
 
 # Path to use on server (sombrero)
-base_directory <- "barbaracardeli@sombrero.cpa.unicamp.br:~/INV_MODEL/nc_outputs"
+base_directory <- "/home/barbaracardeli/INV_MODEL/nc_outputs"
 
 # Path to use on local machine!
 #base_directory <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs/RUN_BASE/nc_outputs"
@@ -148,7 +148,11 @@ for (i in 1:iterations) {
   cat("Starting optmizaion...\n")
   
   # Call Python script to run the CAETÊ-DVM model
-  system(paste("python3 /home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/model_driver.py"), wait = TRUE)
+  #To run on server:
+  system(paste("python3 /home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/src/model_driver.py"), wait = TRUE)
+  
+  # To run in your machine
+  #system(paste("python3 /home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/model_driver.py"), wait = TRUE)
   
   # Optimization to find the best distribution parameters
   opt_result <- optim(par = initial_params, 
@@ -175,7 +179,11 @@ for (i in 1:iterations) {
   )
   
   # Define the current iteration's results folder name
-  run_name <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt"
+  # To run on server
+  run_name <-"/home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/src/run_name.txt"
+  
+  # To run in your machine:
+  #run_name <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt"
   
   # Read folder name from "run_name.txt" file
   result_folder <- readLines(run_name)
@@ -187,14 +195,22 @@ for (i in 1:iterations) {
   cat("Folder name generated for iteration:", result_folder, "\n")
   
   # Debug: View the full path to the results folder
-  cat("Full path to the results folder:", file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder), "\n")
+  #On server:
+  cat("Full path to the results folder:", file.path("/home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/outputs", result_folder), "\n")
+  write_json(params_to_save, file.path("/home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/outputs", result_folder, "params.json"))
   
-  write_json(params_to_save, file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "params.json"))
+  #In your machine
+  #cat("Full path to the results folder:", file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder), "\n")
+  #write_json(params_to_save, file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "params.json"))
   
   ####### PROCESSING & VERIFICATION #######
   
   # Set the experiment directory (output file)
-  test_directory <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "nc_outputs")
+  #On server:
+  test_directory <- file.path("/home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/outputs", result_folder, "nc_outputs")
+  
+  #In your machine
+  #test_directory <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "nc_outputs")
   
   # Debug: Show experiment directory path
   cat("Experiment directory path:", test_directory, "\n")
@@ -228,10 +244,17 @@ for (i in 1:iterations) {
     beepr::beep(3) #tan-tan-tan-tan beat the drums!!!!!
     
     # Save optimized parameters to the new result folder
-    write_json(params_to_save, file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "params.json"))
+    #On server:
+    write_json(params_to_save, file.path("/home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/outputs", result_folder, "params.json"))
     
     # Output file path for optimization results
-    output_file <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "resultados_otimizacao.txt")
+    output_file <- file.path("/home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/outputs", result_folder, "resultados_otimizacao.txt")
+    
+    #In your machine 
+    #write_json(params_to_save, file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "params.json"))
+    
+    # Output file path for optimization results
+    #output_file <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "resultados_otimizacao.txt")
     
     # Range optimized
     traits_optim <- sprintf("Iteração %d: dwood_min = %.2f, dwood_max = %.2f, sla_min = %.4f, sla_max = %.4f, g1_min = %.2f, g1_max = %.2f\n",
@@ -242,10 +265,20 @@ for (i in 1:iterations) {
     
     # Define a new folder for each successful match
     new_result_folder <- paste0("MATCH_", match_counter)
-    new_result_folder_path <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", new_result_folder)
+    
+    #On server:
+    new_result_folder_path <- file.path("/home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/outputs", new_result_folder)
+    
+    #In your machine
+    #new_result_folder_path <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", new_result_folder)
     
     # Copy the entire contents of the original output folder to the new folder
-    original_output_folder <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder)
+    #On server:
+    original_output_folder <- file.path("/home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/outputs", result_folder)
+    
+    #In your machine
+    #original_output_folder <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder)
+    
     copy_directory(original_output_folder, new_result_folder_path)
     
     # Verificar se a cópia foi bem-sucedida (verificar se a pasta "nc_outputs" existe)
@@ -272,7 +305,11 @@ for (i in 1:iterations) {
     print("Deleting the contents of the outputs folder and start it again...")
     
     # Deleting "NO MATCH!" outputs
-    output_base_path <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs"
+    #On server:
+    output_base_path <- "/home/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/outputs"
+    
+    #In your machine
+    #output_base_path <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs"
     out_folder <- result_folder
     folder_path <- file.path(output_base_path, result_folder)
     print(folder_path)
