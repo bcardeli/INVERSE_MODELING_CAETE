@@ -99,7 +99,12 @@ delete_folder <- function(folder_path) {
 
 # Define base experiment results [VERIFICATION]
 # If you are running this algorithm for the first time, you should ask for this data. 
-base_directory <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs/RUN_BASE/nc_outputs"
+
+# Path to use on server (sombrero)
+base_directory <- "/home/barbaracardeli/INV_MODEL/nc_outputs"
+
+# Path to use on local machine!
+#base_directory <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs/RUN_BASE/nc_outputs"
 base_et_file <- "evapm_20150101-20161231.nc4"
 base_gpp_file <- "photo_20150101-20161231.nc4"
 base_sum_files <- c("cleaf_20150101-20161231.nc4", "cawood_20150101-20161231.nc4", "cfroot_20150101-20161231.nc4")
