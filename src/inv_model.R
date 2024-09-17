@@ -101,7 +101,7 @@ delete_folder <- function(folder_path) {
 # If you are running this algorithm for the first time, you should ask for this data. 
 
 # Path to use on server (sombrero)
-base_directory <- "/home/barbaracardeli/INV_MODEL/nc_outputs"
+base_directory <- "barbaracardeli@sombrero.cpa.unicamp.br:~/INV_MODEL/nc_outputs"
 
 # Path to use on local machine!
 #base_directory <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs/RUN_BASE/nc_outputs"
