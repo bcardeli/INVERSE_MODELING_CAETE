@@ -847,9 +847,9 @@ class grd:
 
         # Catch climatic input and make conversions
         temp1 = self.tas[lb: hb + 1] - 273.15 # ! K to °C
-        temp = temp1 + 3.2  ##EXPERIMENT_RCP (SSP 4.5 = 3.2 // SSP 8.5 = 5.5)
+        temp = temp1 + 5.5  ##EXPERIMENT_RCP (SSP 4.5 = 3.2 // SSP 8.5 = 5.5)
         prec1 = self.pr[lb: hb + 1] * 86400 # kg m-2 s-1 to  mm/day
-        prec = prec1 - (prec1 * 0.058)    ##EXPERIMENT_RCP (SSP 4.5 = -5.8 [0.058] // SSP 8.5 = -14.8 [0.148])
+        prec = prec1 - (prec1 * 0.0148)    ##EXPERIMENT_RCP (SSP 4.5 = -5.8 [0.058] // SSP 8.5 = -14.8 [0.148])
         prec[np.where(prec < 0.0)[0]] = 0.0
         # transforamando de Pascal pra mbar (hPa)
         p_atm = self.ps[lb: hb + 1] * 0.01
