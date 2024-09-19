@@ -19,6 +19,7 @@ Copyright 2017-2018 LabTerra
 # This module contains the procedures to create the set of PLant life strategies for CAETÊ runs
 
 import os
+import json
 import sys
 from math import ceil
 import csv
@@ -49,6 +50,11 @@ def vec_ranging(values, new_min, new_max):
         output.append(new_v)
 
     return np.array(output, dtype=np.float32)
+
+def load_optimized_params(filepath):
+    with open(filepath, 'r') as f:
+        params = json.load(f)
+    return params
 
 
 def check_viability(trait_values, wood):
@@ -224,6 +230,9 @@ def calc_ratios3(NPLS):
 def table_gen(NPLS, fpath=None):
     """AKA main - generate a trait table for CAETÊ - save it to a .csv"""
 
+    # Carrega os parâmetros otimizados
+    params = load_optimized_params('/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/params.json')
+
     diffg, diffw = assertion_data_size(NPLS)
     plsa_wood, plsa_grass = turnover_combinations(True)
 
@@ -244,7 +253,8 @@ def table_gen(NPLS, fpath=None):
     while index0 < diffg:
         restime = np.zeros(shape=(3,), dtype=np.float64)
         dwood = 0.0
-        sla_var = np.random.uniform(0.009, 0.020, NPLS) #(0.009-0.040) TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
+        sla_var = np.random.uniform(params['sla_min'], params['sla_max'], NPLS)
+        #sla_var = np.random.uniform(0.009, 0.020, NPLS) #(0.009-0.040) TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_grass[np.random.randint(0, plsa_grass.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
         restime[1] = 0.0
@@ -265,8 +275,10 @@ def table_gen(NPLS, fpath=None):
     rtime_wood = np.random.uniform(0.20, 100.0, r_ceil)
     while index1 < diffw:
         restime = np.zeros(shape=(3,), dtype=np.float64)
-        dwood = np.random.uniform(0.5, 0.7, NPLS) # [g/cm3]; Global Wood Density Database (Zanne et al., 2009)
-        sla_var = np.random.uniform(0.009, 0.020, NPLS) #(0.009-0.040) [m2/g]; TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
+        dwood = np.random.uniform(params['dwood_min'], params['dwood_max'], NPLS)
+        sla_var = np.random.uniform(params['sla_min'], params['sla_max'], NPLS)
+        #dwood = np.random.uniform(0.5, 0.7, NPLS) # [g/cm3]; Global Wood Density Database (Zanne et al., 2009)
+        #sla_var = np.random.uniform(0.009, 0.020, NPLS) #(0.009-0.040) [m2/g]; TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_wood[np.random.randint(0, plsa_wood.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
         restime[1] = rtime_wood[np.random.randint(0, r_ceil)]
@@ -287,7 +299,8 @@ def table_gen(NPLS, fpath=None):
     # # # COMBINATIONS
     # # # Random samples from  distributions (g1, tleaf ...)
     # # # Random variables
-    g1 = np.random.uniform(10.0, 19.0, NPLS)
+    g1 = np.random.uniform(params['g1_min'], params['g1_max'], NPLS)
+    #g1 = np.random.uniform(10.0, 19.0, NPLS)
     # g1 = vec_ranging(np.random.beta(1.2, 2, NPLS), 1.0, 15.0) # dimensionles
     # # vcmax = np.random.uniform(3e-5, 100e-5,N) # molCO2 m-2 s-1
     resorption = np.random.uniform(0.2, 0.7, NPLS)

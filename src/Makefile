@@ -112,7 +112,7 @@ debug_caete.o: debug_caete.f90
 
 # CLEAN DIR
 clean:
-	rm -rf test *.mod *.s *.o pls_ex.txt __pycache__ run_debug run_name.txt
+	rm -rf test *.mod *.s *.o pls_ex.txt __pycache__ run_debug run_name.txt params.json
 	clear
 
 clean_alloc:
