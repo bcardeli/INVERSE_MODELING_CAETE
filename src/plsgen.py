@@ -231,7 +231,7 @@ def table_gen(NPLS, fpath=None):
     """AKA main - generate a trait table for CAETÊ - save it to a .csv"""
 
     # Carrega os parâmetros otimizados
-    params = load_optimized_params('/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/params.json')
+    params = load_optimized_params('/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/src/params.json')
 
     diffg, diffw = assertion_data_size(NPLS)
     plsa_wood, plsa_grass = turnover_combinations(True)
@@ -247,13 +247,14 @@ def table_gen(NPLS, fpath=None):
     #rtime_leaf = np.random.uniform(0.166, 8.3333, r_ceil)
 
 
-    rtime_leaf = np.random.uniform(2., 8.3333, r_ceil)
-    rtime_froot = np.random.uniform(0.08333, 8.3333, r_ceil)
-    print("CREATE GRASSY STRATEGIES - Checking potential npp/alocation")
+    rtime_leaf = np.random.uniform(0.166, 8.3333, r_ceil) #8.33 anos = 100 meses (reference: Pavlick et al 2013)
+    rtime_froot = np.random.uniform(0.08333, 8.3333, r_ceil) # 0.08333 anos = 1mês e 8.33 = 100 meses (reference: Pavlick et al 2013)
+    
+    print("CREATE GRASSY STRATEGIES - Checking potential NPP/alocation")
     while index0 < diffg:
         restime = np.zeros(shape=(3,), dtype=np.float64)
         dwood = 0.0
-        sla_var = np.random.uniform(params['sla_min'], params['sla_max'], NPLS)
+        sla_var = np.random.uniform(params['sla_min'], params['sla_max'], NPLS) #Inverse_modeling
         #sla_var = np.random.uniform(0.009, 0.020, NPLS) #(0.009-0.040) TRY (Poorter & Bongers, 2006; Asner et al., 2011; Kattge et al., 2011)
         allocatio = plsa_grass[np.random.randint(0, plsa_grass.shape[0])]
         restime[0] = rtime_leaf[np.random.randint(0, r_ceil)]
@@ -267,7 +268,8 @@ def table_gen(NPLS, fpath=None):
         sys.stdout.write('\r%s' % (str(index0)))
     sys.stdout.flush()
     print("\n")
-    print("CREATE WOODY STRATEGIES - Checking potential npp/alocation")
+    
+    print("CREATE WOODY STRATEGIES - Checking potential NPP/alocation")
     # Creating woody plants (maybe herbaceous)
     index1 = 0
     # rtime_wood = vec_ranging(np.random.beta(

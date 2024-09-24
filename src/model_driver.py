@@ -71,7 +71,7 @@ import joblib
 from netCDF4 import Dataset
 import numpy as np
 
-import caete
+import caete_module
 from caete import grd, mask, npls, print_progress, rbrk
 import plsgen as pls
 
@@ -81,7 +81,7 @@ __descr__ = """RUN CAETÊ"""
 FUNCALLS = 0
 
 # Carrega o arquivo de configuração
-with open('config.json') as f:
+with open('config_ssp4.json') as f:
     config = json.load(f)
 
 def check_start():
@@ -140,10 +140,10 @@ if not sombrero:
         #"Give a name to your run (ASCII letters and numbers only. No spaces): ")
     
     #ON SERVER:
-    #run_name_path = Path('/home/amazonfaceme/barbaracardeli/INV_MODEL/INVERSE_MODELING_CAETE/src/run_name.txt')
+    run_name_path = Path('/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/src/run_name.txt')
     
     #IN YOUR MACHINE
-    run_name_path = Path('/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt')
+    #run_name_path = Path('/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt')
     # Gravar o nome da pasta no arquivo run_name.txt 
    
     with open(run_name_path, 'w') as file:
@@ -380,7 +380,7 @@ def zip_gridtime(grd_pool, interval):
 
 
 def apply_funX(grid:grd, brk:list)->grd:
-    grid.run_caete(brk[0], brk[1], fix_co2=1350) ##EXPERIMENT_RCP (fix_co2=600 [SSP 4.5] // fix_co2=1350 [SSP 8.5])
+    grid.run_caete(brk[0], brk[1], fix_co2=600) ##EXPERIMENT_RCP (fix_co2=600 [SSP 4.5] // fix_co2=1350 [SSP 8.5])
     return grid
 
 # Garbage collection

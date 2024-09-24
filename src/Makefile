@@ -18,9 +18,9 @@
 
 # Build caete_module & debug programs
 PYEXEC = python3
-F2PY = $(PYEXEC) -m numpy.f2py
+F2PY = python3 -m numpy.f2py
 MODNAME = caete_module
-INTERFACES = $(MODNAME).pyf
+INTERFACES = caete_module.pyf
 DEBUG_PROGRAM = run_debug
 
 # RUN MODE FLAGS

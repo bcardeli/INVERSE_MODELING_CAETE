@@ -1,7 +1,7 @@
 {
-  "run_name": "spp4_exp",
+  "run_name": "ssp4_exp1",
   "zone": "c",
   "mask_option": "a",
-  "num_initial_ev": 10,
+  "num_initial_ev": 1000,
   "sombrero": "n"
 }
