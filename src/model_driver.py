@@ -81,7 +81,7 @@ __descr__ = """RUN CAETÊ"""
 FUNCALLS = 0
 
 # Carrega o arquivo de configuração
-with open('config_ssp4.json') as f:
+with open('config.json') as f:
     config = json.load(f)
 
 def check_start():
@@ -140,7 +140,7 @@ if not sombrero:
         #"Give a name to your run (ASCII letters and numbers only. No spaces): ")
     
     #ON SERVER:
-    run_name_path = Path('/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/src/run_name.txt')
+    run_name_path = Path('/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/src/run_name.txt')
     
     #IN YOUR MACHINE
     #run_name_path = Path('/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt')
@@ -148,7 +148,7 @@ if not sombrero:
    
     with open(run_name_path, 'w') as file:
         file.write(f"{outf}\n")
-    print(f"Nome da pasta gravado no arquivo run_name.txt: {outf}")
+    print(f"Run name saved in the file run_name.txt: {outf}")
     
     dump_folder = Path(f'../outputs/{outf}').resolve()
     nc_outputs = Path(os.path.join(dump_folder, Path("nc_outputs"))).resolve()
@@ -480,7 +480,7 @@ if __name__ == "__main__":
     fh.close()
 
     print("\nEND OF MODEL EXECUTION ", time.ctime(), "\n\n")
-    print("Saving db - This will take some hours\n")
+    print("Saving outputs data - This will take some hours\n")
     write_h5(dump_folder)
     print("\n\nSaving netCDF4 files")
     h5path = Path(os.path.join(dump_folder, Path('CAETE.h5'))).resolve()

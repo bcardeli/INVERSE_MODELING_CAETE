@@ -231,7 +231,7 @@ def table_gen(NPLS, fpath=None):
     """AKA main - generate a trait table for CAETÊ - save it to a .csv"""
 
     # Carrega os parâmetros otimizados
-    params = load_optimized_params('/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/src/params.json')
+    params = load_optimized_params('/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/src/params.json')
 
     diffg, diffw = assertion_data_size(NPLS)
     plsa_wood, plsa_grass = turnover_combinations(True)

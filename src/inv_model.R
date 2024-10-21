@@ -34,12 +34,17 @@ generate_values <- function(npls, min_val, max_val) {
 # Objective function based on the parameters 'dwood', 'sla' and 'g1', 
 # generating values for each of them within the minimum and maximum limits provided [OPTMIZATION]
 objective_function <- function(params, npls) {
-  dwood_min <- params[1]
-  dwood_max <- params[2]
-  sla_min <- params[3]
-  sla_max <- params[4]
-  g1_min <- params[5]
-  g1_max <- params[6]
+  dwood_min <- min(params[1], params[2])
+  dwood_max <- max(params[1], params[2])
+  sla_min <- min(params[3], params[4])
+  sla_max <- max(params[3], params[4])
+  g1_min <- min(params[5], params[6])
+  g1_max <- max(params[5], params[6])
+  
+  # Penalizar relações inconsistentes
+  if (dwood_min >= dwood_max || sla_min >= sla_max || g1_min >= g1_max) {
+    return(1e6)  # Penalidade alta para evitar estas configurações
+  }
   
   dwood <- generate_values(npls, dwood_min, dwood_max)
   sla_var <- generate_values(npls, sla_min, sla_max)
@@ -49,7 +54,10 @@ objective_function <- function(params, npls) {
     return(1e6)
   }
   
-  return(sum(dwood) + sum(sla_var) + sum(g1))
+  # Adding a randomness factor to force more radical changes
+  random_penalty <- runif(1, -2, 2) # range for higher variability
+  
+  return(-1 * (sum(dwood) + sum(sla_var) + sum(g1)) + random_penalty) #maximization (*-1)
 }
 
 # Function to calculate the average of a variable in a NetCDF file [VERIFICATION]
@@ -91,9 +99,9 @@ calculate_experiment <- function(directory, et_file, gpp_file, sum_files, var_na
 delete_folder <- function(folder_path) {
   if (dir.exists(folder_path)) {  # Check if the directory exists
     unlink(folder_path, recursive = TRUE, force = TRUE)
-    cat("Pasta e todo o conteúdo deletados com sucesso:", folder_path, "\n")
+    cat("Folder and all content successfully deleted:", folder_path, "\n")
   } else {
-    cat("O diretório não existe:", folder_path, "\n")
+    cat("The directory doesn't exist:", folder_path, "\n")
   }
 }
 
@@ -105,8 +113,6 @@ delete_folder <- function(folder_path) {
 # (1) ON SERVER:
 base_directory <- "/dmz/home/bcardeli/CAETE_INV_MODEL/RUN_BASE/nclim_base/nc_outputs"
 
-# (2) MY MACHINE:
-#base_directory <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs/RUN_BASE/nc_outputs"
 base_et_file <- "evapm_20150101-20161231.nc4"
 base_gpp_file <- "photo_20150101-20161231.nc4"
 base_sum_files <- c("cleaf_20150101-20161231.nc4", "cawood_20150101-20161231.nc4", "cfroot_20150101-20161231.nc4")
@@ -128,8 +134,18 @@ if (file.exists("npls.txt")) {
 }
 
 # Initial parameters dos traits (WD, SLA and G1, respectively - see pls_gen.py)
-initial_params <- c(0.4, 1.0, 0.006, 0.050, 0.1, 5.0)
-iterations <- 300 #Loop number
+initial_params <- c(0.5, 0.9, 0.009, 0.040, 0.1, 19.0)
+iterations <- 500 #Loop number
+
+# Definir limites inferiores e superiores para cada parâmetro
+lower_bounds <- c(0.5, 0.5,    # dwood_min, dwood_max
+                  0.009, 0.009, # sla_min, sla_max
+                  0.1, 0.1)     # g1_min, g1_max
+
+upper_bounds <- c(0.9, 0.9,    # dwood_min, dwood_max
+                  0.040, 0.040,  # sla_min, sla_max
+                  19.0, 19.0)  # g1_min, g1_max
+
 
 # Define a counter to track the number of successful matches
 match_counter <- 0
@@ -147,15 +163,18 @@ copy_directory <- function(from, to) {
 # OPTIMIZATION LOOP
 for (i in 1:iterations) {
   
-  cat("Starting optmizaion...\n")
+  cat("Starting optmization...\n")
+  
+  # Definir ponto de partida aleatório dentro dos limites para cada parâmetro em cada iteração
+  initial_params <- runif(length(lower_bounds), lower_bounds, upper_bounds)
   
   # Optimization to find the best distribution parameters
   opt_result <- optim(par = initial_params, 
                       fn = objective_function, 
                       npls = npls,
                       method = "L-BFGS-B",
-                      lower = c(0.4, 0.4, 0.006, 0.006, 0.1, 0.1), 
-                      upper = c(1.0, 1.0, 0.050, 0.050, 5.0, 5.0))
+                      lower = lower_bounds, 
+                      upper = upper_bounds)
   
   # Checking if the optimization was successful
   if (opt_result$convergence != 0) {
@@ -163,37 +182,36 @@ for (i in 1:iterations) {
     next
   }
   
-  # Saving optimized parameters to a JSON file
+  # Ajustar os resultados para garantir consistência antes de salvar
+  dwood_min <- min(opt_result$par[1], opt_result$par[2])
+  dwood_max <- max(opt_result$par[1], opt_result$par[2])
+  sla_min <- min(opt_result$par[3], opt_result$par[4])
+  sla_max <- max(opt_result$par[3], opt_result$par[4])
+  g1_min <- min(opt_result$par[5], opt_result$par[6])
+  g1_max <- max(opt_result$par[5], opt_result$par[6])
+  
+  # Salvar os parâmetros consistentes
   params_to_save <- list(
-    dwood_min = opt_result$par[1],
-    dwood_max = opt_result$par[2],
-    sla_min = opt_result$par[3],
-    sla_max = opt_result$par[4],
-    g1_min = opt_result$par[5],
-    g1_max = opt_result$par[6]
+    dwood_min = dwood_min,
+    dwood_max = dwood_max,
+    sla_min = sla_min,
+    sla_max = sla_max,
+    g1_min = g1_min,
+    g1_max = g1_max
   )
   
   # (1) ON SERVER:
-  write_json(params_to_save, file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/src/params.json"))
-  
-  # (2) MY MACHINE:
-  #write_json(params_to_save, file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/params.json"))
+  write_json(params_to_save, file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/src/params.json"))
   
   # Call Python script to run the CAETÊ-DVM model
   
   # (1) ON SERVER:
-  system(paste("python3 /dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/src/model_driver.py"), wait = TRUE)
-  
-  # (2) MY MACHINE:
-  #system(paste("python3 /home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/model_driver.py"), wait = TRUE)
+  system(paste("python3 /dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/src/model_driver.py"), wait = TRUE)
   
   # Define the current iteration's results folder name
   
   # (1) ON SERVER:
-  run_name <-"/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/src/run_name.txt"
-  
-  # (2) MY MACHINE:
-  #run_name <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/src/run_name.txt"
+  run_name <-"/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/src/run_name.txt"
   
   # Read folder name from "run_name.txt" file
   result_folder <- readLines(run_name)
@@ -211,10 +229,7 @@ for (i in 1:iterations) {
   # Set the experiment directory (output file)
   
   # (1) ON SERVER:
-  test_directory <- file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/outputs", result_folder, "nc_outputs")
-  
-  # (2) MY MACHINE:
-  #test_directory <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "nc_outputs")
+  test_directory <- file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/outputs", result_folder, "nc_outputs")
   
   # Debug: Show experiment directory path
   cat("Experiment directory path:", test_directory, "\n")
@@ -250,12 +265,7 @@ for (i in 1:iterations) {
     # Save optimized parameters to the new result folder
     
     # Output file path for optimization results
-    output_file <- file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/outputs", result_folder, "resultados_otimizacao.txt")
-    
-    # (2) MY MACHINE: 
-    #write_json(params_to_save, file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "params.json"))
-    # Output file path for optimization results
-    #output_file <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder, "resultados_otimizacao.txt")
+    output_file <- file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/outputs", result_folder, "resultados_otimizacao.txt")
     
     # Range optimized
     traits_optim <- sprintf("Iteração %d: dwood_min = %.2f, dwood_max = %.2f, sla_min = %.4f, sla_max = %.4f, g1_min = %.2f, g1_max = %.2f\n",
@@ -268,18 +278,12 @@ for (i in 1:iterations) {
     new_result_folder <- paste0("MATCH_", match_counter)
     
     # (1) ON SERVER:
-    new_result_folder_path <- file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/outputs", new_result_folder)
-    
-    #(2) MY MACHINE:
-    #new_result_folder_path <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", new_result_folder)
+    new_result_folder_path <- file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/outputs", new_result_folder)
     
     # Copy the entire contents of the original output folder to the new folder
     
     #(1) ON SERVER:
-    original_output_folder <- file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/outputs", result_folder)
-    
-    #(2) MY MACHINE:
-    #original_output_folder <- file.path("/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs", result_folder)
+    original_output_folder <- file.path("/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/outputs", result_folder)
     
     copy_directory(original_output_folder, new_result_folder_path)
     
@@ -309,10 +313,8 @@ for (i in 1:iterations) {
     # Deleting "NO MATCH!" outputs
     
     #(1) ON SERVER:
-    output_base_path <- "/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE_SSP4/outputs"
+    output_base_path <- "/dmz/home/bcardeli/CAETE_INV_MODEL/INVERSE_MODELING_CAETE/outputs"
     
-    #(2) MY MACHINE:
-    #output_base_path <- "/home/barbara/Documentos/CAETE-DVM_Branch/CAETE-DVM/outputs"
     out_folder <- result_folder
     folder_path <- file.path(output_base_path, result_folder)
     print(folder_path)
